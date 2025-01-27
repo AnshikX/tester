@@ -1,0 +1,117 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+  /* overflow: auto; */
+}
+
+.sideBar {
+  flex: 0 0 1;
+  width: 200px;
+  padding: 10px;
+  /* overflow-y: auto; */
+  border-right: 1px solid #111;
+  height: 100%;
+  background: #e1e1e1;
+}
+
+.sideBarItem {
+  border: 1px solid #000;
+  border-radius: 3px;
+  height: 30px;
+  padding: 10px;
+  margin-top: 10px;
+  background: #ccc;
+}
+
+.page {
+  flex: 1 1 auto;
+  padding: 0 20px;
+  margin: 20px;
+  border: 1px solid green;
+}
+.pageContainer {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  flex-direction: column;
+  margin-bottom: 100px;
+}
+.dropZone {
+  height: 100%;
+  min-height: 20px;
+  min-width: 10px;
+  width: 100%;
+  transition: 200ms all;
+}
+
+.dropZone:nth-of-type(2n) {
+  display: none;
+}
+
+.dropZone.horizontalDrag {
+  width: 40px;
+  height: auto;
+}
+
+.dropZone.active {
+  background: #00a2ff;
+  transition: 100ms all;
+}
+
+.component {
+  padding: 10px;
+  background: #aaa;
+}
+
+.col-drop {
+  max-width: 100px;
+  min-height: 40px;
+  flex: 1 0 0%;
+}
+
+.row-drop {
+  flex: 1 1 auto; 
+  max-width: 100%; 
+  min-height: 20px;
+}
+
+.container {
+  border: 1px solid rgb(82, 82, 0);
+  padding: 0;
+}
+
+.renderer-item {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f9f9f9;
+}
+
+.saveButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.saveButton {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.saveButton:hover {
+  background-color: #0056b3;
+}
