@@ -5,26 +5,18 @@ const SelectionContext = createContext();
 
 export const SelectionProvider = ({ children }) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
-
-  const selectItem = (id) => {
-    setSelectedItemId(id);
-  };
-
-  const clearSelection = () => {
-    setSelectedItemId(null);
-  };
+  const [isResizing, setIsResizing] = useState(false);
 
   return (
     <SelectionContext.Provider
-      value={{ selectedItemId, selectItem, clearSelection }}
+      value={{ selectedItemId, setSelectedItemId, isResizing, setIsResizing }}
     >
       {children}
     </SelectionContext.Provider>
   );
 };
 
-export const useSelection = () => useContext(SelectionContext);
-
 SelectionProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
+export const useSelection = () => useContext(SelectionContext);

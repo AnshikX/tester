@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
+import deleteButton from "./assets/svgs/delete-button.svg";
 
 const OverlayBar = ({
   itemId,
@@ -8,6 +9,8 @@ const OverlayBar = ({
   itemTagName,
   onDelete,
   isVisible,
+  setIsHovered,
+  isFirst,
 }) => {
   const [pos, setPos] = useState(null);
 
@@ -59,37 +62,48 @@ const OverlayBar = ({
     width: `${pos.width}px`,
     height: `${pos.height}px`,
     border: "2px solid #007bff",
+    boxShadow: "0 0 10px rgba(0, 123, 255, 0.7)",
     zIndex: 1000,
     pointerEvents: "none",
+    resize: "both",
   };
 
   const toolbarStyle = {
     position: "fixed",
-    top: `${pos.top - 32}px`,
+    top: `${pos.top - 34}px`,
     left: `${pos.left}px`,
     background: "#2680eb",
     color: "white",
     padding: "5px 10px",
     borderRadius: "5px",
     zIndex: 1001,
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
   };
 
   return createPortal(
     <>
-      <div style={overlayStyle}></div>
-      <div style={toolbarStyle}>
+      <div
+        style={overlayStyle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      ></div>
+      <div
+        style={toolbarStyle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <span>{itemLabel ? itemLabel : itemTagName || "Unnamed Item"}</span>
-        <button
-          onClick={onDelete}
-          style={{
-            // border: "none",
-            // background: "none",
-            cursor: "pointer",
-            color: "red ",
-          }}
-        >
-          <i className="fa fa-trash"></i>
-        </button>
+        {!isFirst && (
+          <img
+            src={deleteButton}
+            alt="Delete"
+            style={{ width: "15px", cursor: "pointer", height: "15px" }}
+            onClick={onDelete}
+          />
+        )}
       </div>
     </>,
     document.body
@@ -102,6 +116,8 @@ OverlayBar.propTypes = {
   itemTagName: PropTypes.string,
   onDelete: PropTypes.func.isRequired,
   isVisible: PropTypes.bool.isRequired,
+  setIsHovered: PropTypes.func.isRequired,
+  isFirst: PropTypes.bool.isRequired,
 };
 
 export default OverlayBar;

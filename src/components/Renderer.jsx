@@ -7,14 +7,22 @@ import { useState } from "react";
 import OverlayBar from "./OverlayBar";
 
 import entities from "./Entities";
+import { useSelection } from "./SelectionContext";
 
-const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
+const Renderer = ({
+  item,
+  addSibling,
+  heirarchy = [],
+  prevId = null,
+  isFirst = true,
+}) => {
   const { removeChildById, updateItem, addItemToId } = useConfig();
-
-  const [selected, setSelected] = useState(false);
+  const { selectedItemId, setSelectedItemId } = useSelection();
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const firstDropZoneHeriarchy = [...heirarchy];
+  const isSelected = selectedItemId === item.id;
+
   const [{ isDragging }, drag] = useDrag({
     type: "HTML",
     item: { ...item },
@@ -33,7 +41,7 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
     const updatedChildren = [...item.children];
     updatedChildren[index] = child;
     item.children = updatedChildren;
-    updateItem({ ...item }); // Update item in the config context
+    updateItem({ ...item });
   };
 
   const handleDrop = (draggedItem, offset = 0) => {
@@ -46,12 +54,12 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
 
   const handleSelect = (e) => {
     e.stopPropagation();
-    setSelected((prevSelected) => !prevSelected);
-    setIsHovered(true);
+    setSelectedItemId(item.id);
+    setIsHovered(false);
   };
 
   const handleDoubleClick = (e) => {
-    e.stopPropagation(); // Prevent triggering other events
+    e.stopPropagation();
     if (item.elementType === "TEXT") {
       setIsEditing(true);
     }
@@ -87,27 +95,31 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
     position: "relative",
     margin: "5px 0",
     cursor: "pointer",
-    resize: selected ? "both" : "none",
+    // resize: isSelected ? "both" : "none",
     // overflow: "auto",
   };
 
   const handleMouseOver = (e) => {
     e.stopPropagation();
-    setIsHovered(true);
+    if (!isSelected) {
+      setIsHovered(true);
+    }
   };
 
   const handleMouseOut = (e) => {
     e.stopPropagation();
-    setIsHovered(false);
+    if (!isSelected) {
+      setIsHovered(false);
+    }
   };
 
   return (
     <>
-        <DropZone
-          onDrop={(draggedItem) => handleDrop(draggedItem, 0)}
-          position="top"
-          heirarchy={firstDropZoneHeriarchy}
-        />
+      <DropZone
+        onDrop={(draggedItem) => handleDrop(draggedItem, 0)}
+        position="top"
+        heirarchy={firstDropZoneHeriarchy}
+      />
       {item.elementType === "TEXT" ? (
         isEditing ? (
           <input
@@ -167,6 +179,7 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
                         addChild(newChild, offset, index)
                       }
                       heirarchy={[...heirarchy, child.id]}
+                      isFirst={false}
                     />
                   );
                 })}
@@ -210,7 +223,6 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
           onMouseOver={handleMouseOver}
           onMouseOut={handleMouseOut}
         >
-          
           {jsxs(
             entities[item["$ref"]],
             {
@@ -232,6 +244,7 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
                           addChild(newChild, offset, index)
                         }
                         heirarchy={[...heirarchy, child.id]}
+                        isFirst={false}
                       />
                     );
                   })}
@@ -282,7 +295,9 @@ const Renderer = ({ item, addSibling, heirarchy = [], prevId = null }) => {
         itemLabel={item.label}
         itemTagName={item.tagName}
         onDelete={handleDelete}
-        isVisible={isHovered}
+        isVisible={isHovered || isSelected}
+        setIsHovered={setIsHovered}
+        isFirst={isFirst}
       />
     </>
   );
@@ -309,6 +324,7 @@ Renderer.propTypes = {
   addSibling: PropTypes.func,
   heirarchy: PropTypes.array,
   prevId: PropTypes.string,
+  isFirst: PropTypes.bool,
 };
 
 export default Renderer;

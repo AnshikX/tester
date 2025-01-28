@@ -14,6 +14,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 
 import { DndProvider } from "react-dnd";
 import { ConfigProvider } from "/src/components/ConfigContext.jsx";
+import { SelectionProvider } from "/src/components/SelectionContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -24,11 +25,13 @@ const router = createBrowserRouter(
       <Route
         path="breeze/config-builder"
         element={
+          <SelectionProvider>
           <ConfigProvider>
             <DndProvider backend={HTML5Backend}>
               <Container />
             </DndProvider>
           </ConfigProvider>
+          </SelectionProvider>
         }
       />
     </Route>
