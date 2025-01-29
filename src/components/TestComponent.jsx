@@ -7,7 +7,7 @@ function TestComponent({ prop1, prop2, children }) {
         {prop1}
         <input type="text" value={prop2} />
       </div>
-      {children}
+      {/* {children} */}
     </>
   );
 }

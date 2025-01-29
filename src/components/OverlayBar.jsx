@@ -6,7 +6,7 @@ import deleteButton from "./assets/svgs/delete-button.svg";
 const OverlayBar = ({
   itemId,
   itemLabel,
-  itemTagName,
+  elementType,
   onDelete,
   isVisible,
   setIsHovered,
@@ -61,7 +61,7 @@ const OverlayBar = ({
     left: `${pos.left}px`,
     width: `${pos.width}px`,
     height: `${pos.height}px`,
-    border: "2px solid #007bff",
+    border: isVisible ? "2px solid #007bff" : "2px dashed #ccc",
     boxShadow: "0 0 10px rgba(0, 123, 255, 0.7)",
     zIndex: 1000,
     pointerEvents: "none",
@@ -95,7 +95,7 @@ const OverlayBar = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <span>{itemLabel ? itemLabel : itemTagName || "Unnamed Item"}</span>
+        <span>{itemLabel ? itemLabel : elementType || "Unnamed Item"}</span>
         {!isFirst && (
           <img
             src={deleteButton}
@@ -113,7 +113,7 @@ const OverlayBar = ({
 OverlayBar.propTypes = {
   itemId: PropTypes.string.isRequired,
   itemLabel: PropTypes.string,
-  itemTagName: PropTypes.string,
+  elementType: PropTypes.string,
   onDelete: PropTypes.func.isRequired,
   isVisible: PropTypes.bool.isRequired,
   setIsHovered: PropTypes.func.isRequired,
