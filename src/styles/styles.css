@@ -115,3 +115,35 @@ body {
 .saveButton:hover {
   background-color: #0056b3;
 }
+
+.rightSidebar {
+  width: 250px;
+  background: #f4f4f4;
+  padding: 10px;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+}
+
+.treeItem {
+  width: 100%;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between; /* Label left, arrow right */
+  align-items: center;
+}
+
+
+/* Hover Effect */
+.treeItem:not(.selected):hover {
+  background: #e0e0e0;
+}
+
+
+/* No extra spacing between children */
+.treeChildren {
+  width: 100%;
+}

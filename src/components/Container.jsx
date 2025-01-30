@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import SideBarItem from "./SideBarItem";
 import Renderer from "./Renderer";
 import "../styles/styles.css";
-import { useConfig } from "./ConfigContext";
-import { useSelection } from "./SelectionContext";
+import { useConfig } from "./contexts/ConfigContext";
+import { useSelection } from "./contexts/SelectionContext";
+import RightSidebar from "./RightSidebar";
 
 const Container = () => {
   const { config, setConfig } = useConfig({});
   const [sidebarItems, setSidebarItems] = useState([]);
-  const { setSelectedItemId } = useSelection();
+  const { selectedItemId, setSelectedItemId } = useSelection();
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -75,11 +76,7 @@ const Container = () => {
           )}
         </div>
       </div> 
-        {/* <div className="saveButtonContainer">
-          <button onClick={handleTransmit} className="saveButton">
-            Save Configuration
-          </button>
-        </div> */}
+      <RightSidebar config={config} selectedItemId={selectedItemId} />
     </div>
   );
 };

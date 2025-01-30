@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
 import DropZone from "./DropZone";
 import PropTypes from "prop-types";
-import { useConfig } from "../components/ConfigContext";
-import { useSelection } from "./SelectionContext";
+import { useConfig } from "./contexts/ConfigContext";
+import { useSelection } from "./contexts/SelectionContext";
 import OverlayBar from "./OverlayBar";
 import TextRenderer from "./elements/TextRenderer";
 import HTMLRenderer from "./elements/HTMLRenderer";
 import ComponentRenderer from "./elements/ComponentRenderer";
+import { useVisibility } from "./contexts/VisibilityContext";
 
 const Renderer = ({
   item,
@@ -17,6 +18,7 @@ const Renderer = ({
   isFirst = true,
 }) => {
   const { removeChildById, updateItem, addItemToId } = useConfig();
+  const { visibilityState, hoveredItemId } = useVisibility();
   const { selectedItemId, setSelectedItemId } = useSelection();
   const [isHovered, setIsHovered] = useState(false);
   const firstDropZoneHeriarchy = [...heirarchy];
@@ -31,6 +33,20 @@ const Renderer = ({
   });
 
   const opacity = isDragging ? 0.5 : 1;
+  const isVisible = visibilityState[item.id] !== false;
+
+  useEffect(() => {
+    if (hoveredItemId === item.id) {
+      setIsHovered(true);
+    } else {
+      setIsHovered(false);
+    }
+  }, [hoveredItemId, item.id]);
+
+  if (!isVisible) {
+    return null;
+  }
+
   const addChild = (newChild, offset, index) => {
     const newItem = JSON.parse(JSON.stringify(newChild));
     addItemToId(newItem, item.id, offset + index);
