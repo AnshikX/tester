@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 import DropZone from "./DropZone";
 import PropTypes from "prop-types";
@@ -43,63 +43,88 @@ const Renderer = ({
     }
   }, [hoveredItemId, item.id]);
 
-  if (!isVisible) {
-    return null;
-  }
+  const addChild = useCallback(
+    (newChild, offset, index) => {
+      const newItem = JSON.parse(JSON.stringify(newChild));
+      addItemToId(newItem, item.id, offset + index);
+    },
+    [addItemToId, item.id]
+  );
 
-  const addChild = (newChild, offset, index) => {
-    const newItem = JSON.parse(JSON.stringify(newChild));
-    addItemToId(newItem, item.id, offset + index);
-  };
+  const updateChild = useCallback(
+    (child, index) => {
+      const updatedChildren = [...item.children];
+      updatedChildren[index] = child;
+      item.children = updatedChildren;
+      updateItem({ ...item });
+    },
+    [item, updateItem]
+  );
 
-  const updateChild = (child, index) => {
-    const updatedChildren = [...item.children];
-    updatedChildren[index] = child;
-    item.children = updatedChildren;
-    updateItem({ ...item });
-  };
-
-  const handleDrop = (draggedItem, offset = 0) => {
-    addSibling(draggedItem, offset);
-  };
+  const handleDrop = useCallback(
+    (draggedItem, offset = 0) => {
+      addSibling(draggedItem, offset);
+    },
+    [addSibling]
+  );
 
   if (prevId) {
     firstDropZoneHeriarchy.push(prevId);
   }
 
-  const handleSelect = (e) => {
-    e.stopPropagation();
-    setSelectedItemId(item.id);
-    setIsHovered(false);
-  };
-
-  const handleDelete = (e) => {
-    e.stopPropagation();
-    removeChildById(item.id);
-  };
-
-  const commonStyle = {
-    border: "2px dashed #ccc",
-    opacity,
-    padding: "10px",
-    position: "relative",
-    margin: "5px 0",
-    cursor: "pointer",
-  };
-
-  const handleMouseOver = (e) => {
-    e.stopPropagation();
-    if (!isSelected) {
-      setIsHovered(true);
-    }
-  };
-
-  const handleMouseOut = (e) => {
-    e.stopPropagation();
-    if (!isSelected) {
+  const handleSelect = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (selectedItemId !== item.id) {
+        setSelectedItemId(item.id);
+      }
       setIsHovered(false);
-    }
-  };
+    },
+    [selectedItemId, setSelectedItemId, item.id]
+  );
+
+  const handleDelete = useCallback(
+    (e) => {
+      e.stopPropagation();
+      removeChildById(item.id);
+    },
+    [removeChildById, item.id]
+  );
+
+  const commonStyle = useMemo(() => {
+    return {
+      border: "2px dashed #ccc",
+      opacity,
+      padding: "10px",
+      position: "relative",
+      margin: "5px 0",
+      cursor: "pointer",
+    };
+  }, [opacity]);
+
+  const handleMouseOver = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (!isSelected) {
+        setIsHovered(true);
+      }
+    },
+    [isSelected]
+  );
+
+  const handleMouseOut = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (!isSelected) {
+        setIsHovered(false);
+      }
+    },
+    [isSelected]
+  );
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <>

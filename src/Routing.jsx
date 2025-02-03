@@ -27,13 +27,13 @@ const router = createBrowserRouter(
         path="breeze/config-builder"
         element={
           <VisibilityProvider>
-            <SelectionProvider>
               <ConfigProvider>
+            <SelectionProvider>
                 <DndProvider backend={HTML5Backend}>
                   <Container />
                 </DndProvider>
-              </ConfigProvider>
             </SelectionProvider>
+              </ConfigProvider>
           </VisibilityProvider>
         }
       />

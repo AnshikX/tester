@@ -8,7 +8,7 @@ import eyeOpen from "./assets/svgs/eye-open.svg";
 import eyeClosed from "./assets/svgs/eye-close.svg";
 import { useConfig } from "./contexts/ConfigContext";
 
-const TreeView = ({ node, level = 0, handleSelect, setIsHovered }) => {
+const TreeView = ({ node, level = 0, handleSelect }) => {
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const { selectedItemId } = useSelection();
@@ -101,7 +101,6 @@ const TreeView = ({ node, level = 0, handleSelect, setIsHovered }) => {
               node={child}
               level={level + 1}
               handleSelect={handleSelect}
-              setIsHovered={setIsHovered}
             />
           ))}
         </div>
@@ -114,7 +113,6 @@ TreeView.propTypes = {
   node: PropTypes.object.isRequired,
   level: PropTypes.number,
   handleSelect: PropTypes.func.isRequired,
-  setIsHovered: PropTypes.func.isRequired,
 };
 
 export default TreeView;

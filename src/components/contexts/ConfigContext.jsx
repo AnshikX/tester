@@ -79,13 +79,35 @@ export const ConfigProvider = ({ children }) => {
       return updatedConfig;
     });
   };
+
+  const updateStyles = (updatedItem) => {
+    const updateStylesRecursive = (parent) => {
+      if (parent.id === updatedItem.id) {
+        return { ...parent, attributes: { ...parent.attributes, style: updatedItem.attributes.style } };
+      }
+      if (parent.children) {
+        return {
+          ...parent,
+          children: parent.children.map(updateStylesRecursive),
+        };
+      }
+      return parent;
+    };
+  
+    setConfig((prevConfig) => {
+      const updatedConfig = updateStylesRecursive(prevConfig);
+      console.log("Updated config after style update:", updatedConfig);
+      return updatedConfig;
+    });
+  };
+  
   ConfigProvider.propTypes = {
     children: PropTypes.node.isRequired,
   };
 
   return (
     <ConfigContext.Provider
-      value={{ config, setConfig, removeChildById, updateItem, addItemToId }}
+      value={{ config, setConfig, removeChildById, updateItem, addItemToId, updateStyles }}
     >
       {children}
     </ConfigContext.Provider>

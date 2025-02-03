@@ -36,20 +36,22 @@ const Container = () => {
     };
   }, [setConfig, setSidebarItems]);
 
-  // const handleTransmit = () => {
-  //   window.parent.postMessage(
-  //     {
-  //       source: "APP",
-  //       type: "resource",
-  //       resource: { type: "customConfig", customConfig: config },
-  //     },
-  //     "*"
-  //   );
-  // };
+  const handleTransmit = () => {
+    window.parent.postMessage(
+      {
+        source: "APP",
+        type: "resource",
+        resource: { type: "customConfig", customConfig: config },
+      },
+      "*"
+    );
+  };
 
   useEffect(()=>{
     const handleClickOutside = () => {
+      if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
         setSelectedItemId(null);
+      }
       }
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
@@ -77,6 +79,7 @@ const Container = () => {
         </div>
       </div> 
       <RightSidebar config={config} selectedItemId={selectedItemId} />
+      <button onClick={handleTransmit}>Transmit</button>
     </div>
   );
 };
