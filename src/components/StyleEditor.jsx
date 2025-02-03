@@ -1,8 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { STYLECATEGORIES } from "./StyleCategoriesConstants";
 import { useConfig } from "./contexts/ConfigContext";
 import { useSelection } from "./contexts/SelectionContext";
-
 const debounce = (func, delay) => {
   let timeout;
   return (...args) => {
@@ -16,16 +15,20 @@ const StyleEditor = () => {
   const { selectedItem, selectedItemId, localStyles, setLocalStyles } = useSelection();
   const [expandedCategory, setExpandedCategory] = useState(null);
 
+  const stylesRef = useRef(localStyles);
+
   useEffect(() => {
     setLocalStyles(selectedItem?.attributes?.style || {});
   }, [selectedItemId, selectedItem, setLocalStyles]);
 
   // Handles instant UI updates
   const handleStyleChange = (property, value) => {
-    setLocalStyles((prevStyles) => ({
-      ...prevStyles,
-      [property]: typeof value === "object" ? `${value.value}${value.unit}` : value,
-    }));
+    stylesRef.current = { ...stylesRef.current, [property]: typeof value === "object" ? `${value.value}${value.unit}` : value };
+    
+    const setStyleDebounce  = debounce(()=>{
+      setLocalStyles(stylesRef.current);
+    },50)
+    setStyleDebounce();
   };
   
   const handleStyleBlur = () => {
@@ -49,21 +52,23 @@ const StyleEditor = () => {
   };
 
   const getStyleValue = (name) => {
-    // Priority: localStyles -> selectedItem.attributes.style -> default value
     if (localStyles && localStyles[name] !== undefined) {
-      return localStyles[name];
+      const val = localStyles[name];
+      return typeof val === "string"
+        ? { value: parseFloat(val) || 0, unit: val.replace(/[0-9.-]/g, "") || "px" }
+        : val;
     }
-
-    // console.log(selectedItem.attributes.style)
+  
     if (selectedItem && selectedItem.attributes?.style && selectedItem.attributes.style[name] !== undefined) {
-      return selectedItem.attributes.style[name];
+      const val = selectedItem.attributes.style[name];
+      return typeof val === "string"
+        ? { value: parseFloat(val) || 0, unit: val.replace(/[0-9.-]/g, "") || "px" }
+        : val;
     }
-    // Default values
-    if (name === 'color') return '#ffffff'; // Default color
-    if (name === 'width' || name === 'height') return '0px'; // Default dimensions
-
-    return ''; // Default text value for text inputs
+  
+    return { value: 0, unit: "px" }; // Default to 0px
   };
+  
 
   return (
     <div style={{ border: "2px solid black", padding: "4px", fontSize: "16px" }}>
@@ -140,7 +145,7 @@ const StyleEditor = () => {
                         <input
                           type="number"
                           placeholder={`Enter ${name}`}
-                          value={getStyleValue(name, "dimension")?.unit || "px"}
+                          value={getStyleValue(name)?.value || ""}
                           onChange={(e) =>
                             handleStyleChange(name, {
                               value: e.target.value,
@@ -174,7 +179,7 @@ const StyleEditor = () => {
                         type="range"
                         min="-50"
                         max="200"
-                        value={getStyleValue(name)?.value || 0}
+                        value={parseFloat(getStyleValue(name)?.value) || 0}
                         onChange={(e) =>
                           handleStyleChange(name, {
                             value: e.target.value,

@@ -15,7 +15,7 @@ const HTMLRendererX = ({
   updateChild,
   drag,
 }) => {
-  const { localStyles, selectedItemId, updateLocalStyles } = useSelection();
+  const { localStyles, selectedItemId } = useSelection();
 
   useEffect(() => {
     console.log("HTMLRenderer re-rendered");
@@ -29,7 +29,7 @@ const HTMLRendererX = ({
     if (localStyles && selectedItemId === item.id && Object.keys(localStyles).length > 0) {
       return { ...commonStyle, ...localStyles };
     }
-    return { ...commonStyle, ...item.attributes?.style };
+      return { ...commonStyle, ...item.attributes?.style };
   }, [localStyles, selectedItemId, item, commonStyle]);
 
   const renderedChildren = useMemo(() => {
@@ -99,7 +99,7 @@ const HTMLRendererX = ({
 const HTMLRenderer = React.memo(HTMLRendererX, (prevProps, nextProps) => {
   // Custom comparison function to prevent re-renders unless necessary
   return (
-    prevProps.item.id === nextProps.item.id &&
+    prevProps.item === nextProps.item &&
     prevProps.localStyles === nextProps.localStyles &&
     JSON.stringify(prevProps.heirarchy) === JSON.stringify(nextProps.heirarchy)
   );
