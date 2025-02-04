@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { STYLECATEGORIES } from "./StyleCategoriesConstants";
 import { useConfig } from "./contexts/ConfigContext";
 import { useSelection } from "./contexts/SelectionContext";
+
 const debounce = (func, delay) => {
   let timeout;
   return (...args) => {
@@ -25,12 +26,23 @@ const StyleEditor = () => {
   const handleStyleChange = (property, value) => {
     stylesRef.current = { ...stylesRef.current, [property]: typeof value === "object" ? `${value.value}${value.unit}` : value };
     
-    const setStyleDebounce  = debounce(()=>{
+    const setStyleDebounce = debounce(() => {
       setLocalStyles(stylesRef.current);
-    },50)
+    }, 50);
     setStyleDebounce();
+
+    const updateConfigDebounce = debounce(() => {
+      if (selectedItem) {
+        updateStyles({
+          ...selectedItem,
+          attributes: { ...selectedItem.attributes, style: stylesRef.current },
+        });
+      }
+    }, 500);
+    updateConfigDebounce();
+
   };
-  
+
   const handleStyleBlur = () => {
     if (selectedItem) {
       const formattedStyles = Object.fromEntries(
@@ -41,34 +53,38 @@ const StyleEditor = () => {
           return [key, value]; 
         })
       );
-  
+
       updateStyles({
         ...selectedItem,
         attributes: { ...selectedItem.attributes, style: formattedStyles },
       });
-  
+
       setLocalStyles({});
     }
   };
 
   const getStyleValue = (name) => {
     if (localStyles && localStyles[name] !== undefined) {
-      const val = localStyles[name];
-      return typeof val === "string"
-        ? { value: parseFloat(val) || 0, unit: val.replace(/[0-9.-]/g, "") || "px" }
-        : val;
+      return localStyles[name];
     }
-  
-    if (selectedItem && selectedItem.attributes?.style && selectedItem.attributes.style[name] !== undefined) {
-      const val = selectedItem.attributes.style[name];
-      return typeof val === "string"
-        ? { value: parseFloat(val) || 0, unit: val.replace(/[0-9.-]/g, "") || "px" }
-        : val;
+    if (selectedItem?.attributes?.style?.[name] !== undefined) {
+      return selectedItem.attributes.style[name];
     }
-  
-    return { value: 0, unit: "px" }; // Default to 0px
+    
+    // Default values
+    if (name === "color") return "#ffffff";
+    if (name === "width" || name === "height") return "0px";
+    return "";
   };
+
+  const handleClear = (name) => {
+    const updatedStyles = { ...localStyles };
+    delete updatedStyles[name]; 
+    setLocalStyles({...updatedStyles});
+    stylesRef.current = updatedStyles;
   
+    handleStyleBlur();
+  };
 
   return (
     <div style={{ border: "2px solid black", padding: "4px", fontSize: "16px" }}>
@@ -100,24 +116,44 @@ const StyleEditor = () => {
                   <label style={{ fontWeight: "bold", fontSize: "16px" }}>{name}:</label>
 
                   {type === "text" && (
-                    <input
-                      type="text"
-                      placeholder={`Enter ${name}`}
-                      value={getStyleValue(name, "dimension")?.value || ""}
-                      onChange={(e) => handleStyleChange(name, e.target.value)}
-                      onBlur={handleStyleBlur} 
-                      style={{ padding: "2px", width: "50%", fontSize: "13px" }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <input
+                        type="text"
+                        placeholder={`Enter ${name}`}
+                        value={getStyleValue(name) || ""}
+                        onChange={(e) => handleStyleChange(name, e.target.value)}
+                        onBlur={handleStyleBlur}
+                        style={{ padding: "2px", width: "50%", fontSize: "13px" }}
+                      />
+                      {/* {(getStyleValue(name)|| getStyleValue(name) )&& (
+                        <button
+                          onClick={() => handleClear(name)}
+                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
+                        >
+                          Clearsdddd
+                        </button>
+                      )} */}
+                    </div>
                   )}
 
                   {type === "color" && (
-                    <input
-                      type="color"
-                      value={getStyleValue(name) || "#ffffff"}
-                      onChange={(e) => handleStyleChange(name, e.target.value)}
-                      onBlur={handleStyleBlur} 
-                      style={{ width: "60px", height: "40px" }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <input
+                        type="color"
+                        value={getStyleValue(name) || "#ffffff"}
+                        onChange={(e) => handleStyleChange(name, e.target.value)}
+                        onBlur={handleStyleBlur}
+                        style={{ width: "60px", height: "40px" }}
+                      />
+                      {/* {getStyleValue(name) !== "#ffffff" && getStyleValue(name) && (
+                        <button
+                          onClick={() => handleClear(name)}
+                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
+                        >
+                          Clearasd
+                        </button>
+                      )} */}
+                    </div>
                   )}
 
                   {type === "select" && (
@@ -130,12 +166,20 @@ const StyleEditor = () => {
                             value={option}
                             checked={getStyleValue(name) === option}
                             onChange={(e) => handleStyleChange(name, e.target.value)}
-                            onBlur={handleStyleBlur} 
+                            onBlur={handleStyleBlur}
                             style={{ marginRight: "8px" }}
                           />
                           {option}
                         </label>
                       ))}
+                      {/* {getStyleValue(name) && (
+                        <button
+                          onClick={() => handleClear(name)}
+                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
+                        >
+                          Clearssfd
+                        </button>
+                      )} */}
                     </div>
                   )}
 
@@ -145,25 +189,25 @@ const StyleEditor = () => {
                         <input
                           type="number"
                           placeholder={`Enter ${name}`}
-                          value={getStyleValue(name)?.value || ""}
+                          value={parseFloat(getStyleValue(name)) || 0}
                           onChange={(e) =>
                             handleStyleChange(name, {
                               value: e.target.value,
-                              unit: getStyleValue(name)?.unit || "px",
+                              unit: getStyleValue(name).replace(/[0-9.-]/g, "") || "px",
                             })
                           }
-                          onBlur={handleStyleBlur} 
+                          onBlur={handleStyleBlur}
                           style={{ padding: "4px", width: "70%", fontSize: "13px" }}
                         />
                         <select
-                          value={getStyleValue(name)?.unit || "px"}
+                          value={getStyleValue(name).replace(/[0-9.-]/g, "") || "px"}
                           onChange={(e) =>
                             handleStyleChange(name, {
-                              value: getStyleValue(name)?.value || "",
+                              value: parseFloat(getStyleValue(name)) || 0,
                               unit: e.target.value,
                             })
                           }
-                          onBlur={handleStyleBlur} 
+                          onBlur={handleStyleBlur}
                           style={{ padding: "5px", width: "30%", fontSize: "12px" }}
                         >
                           <option value="px">px</option>
@@ -173,20 +217,28 @@ const StyleEditor = () => {
                           <option value="vw">vw</option>
                           <option value="vh">vh</option>
                         </select>
+                        {/* { (getStyleValue(name) !== "0px" && getStyleValue(name)) && (
+                          <button
+                            onClick={() => handleClear(name)}
+                            style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
+                          >
+                            Clearxczxc
+                          </button>
+                        )} */}
                       </div>
                       <br />
                       <input
                         type="range"
                         min="-50"
                         max="200"
-                        value={parseFloat(getStyleValue(name)?.value) || 0}
+                        value={parseFloat(getStyleValue(name)) || 0}
                         onChange={(e) =>
                           handleStyleChange(name, {
                             value: e.target.value,
-                            unit: getStyleValue(name)?.unit || "px",
+                            unit: getStyleValue(name).replace(/[0-9.-]/g, "") || "px",
                           })
                         }
-                        onBlur={handleStyleBlur} 
+                        onBlur={handleStyleBlur}
                         style={{ width: "100%" }}
                       />
                     </>

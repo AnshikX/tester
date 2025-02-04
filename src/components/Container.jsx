@@ -79,7 +79,7 @@ const Container = () => {
         </div>
       </div> 
       <RightSidebar config={config} selectedItemId={selectedItemId} />
-      <button onClick={handleTransmit}>Transmit</button>
+      {/* <button onClick={handleTransmit}>Transmit</button> */}
     </div>
   );
 };
