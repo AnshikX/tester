@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useState } from "react";
-const Main = ({ prop1 }) => {
+const Test = ({ prop1 }) => {
   const [state, setState] = useState();
   return (
     <div>
-      <div id={undefined}>
-        <span>Hii</span>Hello world
-      </div>
+      Hello world
+      <span />
     </div>
   );
 };
-export default Main;
+export default Test;

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import DropZone from "../DropZone";
 import Renderer from "../Renderer";
 import { useSelection } from "../contexts/SelectionContext";
+import { getValue } from "../constants/processAttributesFunction";
 
 const HTMLRendererX = ({
   item,
@@ -22,15 +23,34 @@ const HTMLRendererX = ({
   }, [heirarchy]);
 
   // Stabilizing the heirarchy to avoid unnecessary re-renders
-  const stableHeirarchy = useMemo(() => [...heirarchy, item.id], [item.id, heirarchy]);
-
-  // Keep a backup of the local styles for the selected item
+  const stableHeirarchy = useMemo(
+    () => [...heirarchy, item.id],
+    [item.id, heirarchy]
+  );
+  
+  const processedAttributes = useMemo(() => {
+    if (!item.attributes) return {};
+  
+    return Object.entries(item.attributes).reduce((acc, [key, value]) => {
+      if (key === "style" && value?.type === "OBJECT") {
+        acc[key] = Object.entries(value.properties).reduce((styleAcc, [styleKey, styleValue]) => {
+          console.log(item.attributes);
+          styleAcc[styleKey] = getValue(styleValue?.value ?? styleValue);
+          return styleAcc;
+        }, {});
+      } else {
+        acc[key] = getValue(value);
+      }
+      return acc;
+    }, {});
+  }, [item.attributes]);
+  
   const appliedStyles = useMemo(() => {
     if (localStyles && selectedItemId === item.id && Object.keys(localStyles).length > 0) {
-      return { ...commonStyle, ...localStyles };
+      return { ...commonStyle, ...processedAttributes.style, ...localStyles };
     }
-      return { ...commonStyle, ...item.attributes?.style };
-  }, [localStyles, selectedItemId, item, commonStyle]);
+    return { ...commonStyle, ...processedAttributes.style };
+  }, [localStyles, selectedItemId, processedAttributes, commonStyle, item.id]);
 
   const renderedChildren = useMemo(() => {
     return Array.isArray(item.children)
@@ -84,8 +104,8 @@ const HTMLRendererX = ({
   return React.createElement(
     item.tagName || "div",
     {
-      ...item.attributes,
-      style: appliedStyles,
+      ...processedAttributes,
+      style: appliedStyles, // Ensures local styles take priority
       onClick: handleSelect,
       onMouseOver: handleMouseOver,
       onMouseOut: handleMouseOut,
@@ -101,7 +121,14 @@ const HTMLRenderer = React.memo(HTMLRendererX, (prevProps, nextProps) => {
   return (
     prevProps.item === nextProps.item &&
     prevProps.localStyles === nextProps.localStyles &&
-    JSON.stringify(prevProps.heirarchy) === JSON.stringify(nextProps.heirarchy)
+    JSON.stringify(prevProps.heirarchy) === JSON.stringify(nextProps.heirarchy) &&
+    prevProps.handleMouseOver === nextProps.handleMouseOver &&
+    prevProps.handleMouseOut === nextProps.handleMouseOut &&
+    prevProps.handleSelect === nextProps.handleSelect &&
+    prevProps.commonStyle === nextProps.commonStyle &&
+    prevProps.drag === nextProps.drag &&
+    prevProps.addChild === nextProps.addChild &&
+    prevProps.updateChild === nextProps.updateChild
   );
 });
 

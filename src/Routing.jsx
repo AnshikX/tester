@@ -1,4 +1,4 @@
-import Main from "/src/components/Main.jsx";
+import Ankur from "/src/components/ankur.jsx";
 
 import SandBox from "./SandBox.jsx";
 import {
@@ -20,7 +20,7 @@ import { VisibilityProvider } from "/src/components/contexts/VisibilityContext.j
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      <Route path="/" element={<Main />} />
+      <Route path="/" element={<Ankur />} />
 
       <Route path="breeze/sandbox" element={<SandBox />} />
       <Route

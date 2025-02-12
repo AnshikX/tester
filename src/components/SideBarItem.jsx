@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 const SideBarItem = ({ data }) => {
   const [{ opacity }, drag] = useDrag({
     type: "HTML",
-    item: { ...data, type: "HTML" },
+    item: { ...data, type: "Element" },
     collect: (monitor) => ({
       opacity: monitor.isDragging() ? 0.4 : 1,
     }),

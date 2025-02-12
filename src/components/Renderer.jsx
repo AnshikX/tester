@@ -23,7 +23,6 @@ const Renderer = ({
   const [isHovered, setIsHovered] = useState(false);
   const firstDropZoneHeriarchy = [...heirarchy];
   const isSelected = selectedItemId === item.id;
-
   const [{ isDragging }, drag] = useDrag({
     type: "HTML",
     item: { ...item },
@@ -46,6 +45,7 @@ const Renderer = ({
   const addChild = useCallback(
     (newChild, offset, index) => {
       const newItem = JSON.parse(JSON.stringify(newChild));
+      console.log(newChild)
       addItemToId(newItem, item.id, offset + index);
     },
     [addItemToId, item.id]
@@ -72,8 +72,7 @@ const Renderer = ({
     firstDropZoneHeriarchy.push(prevId);
   }
 
-  const handleSelect = useCallback(
-    (e) => {
+  const handleSelect = useCallback((e) => {
       e.stopPropagation();
       if (selectedItemId !== item.id) {
         setSelectedItemId(item.id);
@@ -93,12 +92,13 @@ const Renderer = ({
 
   const commonStyle = useMemo(() => {
     return {
-      border: "2px dashed #ccc",
-      opacity,
-      padding: "10px",
-      position: "relative",
-      margin: "5px 0",
-      cursor: "pointer",
+      // border: "2px dashed #ccc",
+      // opacity,
+      // padding: "10px",
+      // position: "relative",
+      // margin: "5px 0",
+      // cursor: "pointer",
+      // // display: "block",  
     };
   }, [opacity]);
 
@@ -125,7 +125,7 @@ const Renderer = ({
   if (!isVisible) {
     return null;
   }
-
+  
   return (
     <>
       <DropZone
@@ -143,7 +143,7 @@ const Renderer = ({
           commonStyle={commonStyle}
           drag={drag}
         />
-      ) : item.elementType === "HTML" || item.elementType === "THIRD_PARTY" ? (
+      ) : item.elementType === "HTML" || item.elementType === "html" || item.elementType === "THIRD_PARTY" ? (
         <HTMLRenderer
           item={item}
           handleSelect={handleSelect}
@@ -181,8 +181,7 @@ const Renderer = ({
       )}
       <OverlayBar
         itemId={item.id}
-        itemLabel={item.label}
-        elementType={item.elementType}
+        itemLabel={item.label || item.tagName || item.elementType}
         onDelete={handleDelete}
         isVisible={isHovered || isSelected}
         setIsHovered={setIsHovered}

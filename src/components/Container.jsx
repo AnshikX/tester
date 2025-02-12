@@ -36,7 +36,7 @@ const Container = () => {
     };
   }, [setConfig, setSidebarItems]);
 
-  const handleTransmit = () => {
+  useEffect(() => {
     window.parent.postMessage(
       {
         source: "APP",
@@ -45,19 +45,19 @@ const Container = () => {
       },
       "*"
     );
-  };
+  }, [config]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const handleClickOutside = () => {
       if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
         setSelectedItemId(null);
       }
-      }
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-  },[setSelectedItemId])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [setSelectedItemId]);
 
   return (
     <div className="body">
@@ -67,17 +67,14 @@ const Container = () => {
         ))}
       </div>
       <div className="pageContainer">
-        <div className="page">
+        <div className="page" id="page">
           {config && config.elementType ? (
-            <Renderer
-              item={config}
-              heirarchy={[config.id]}
-            />
+            <Renderer item={config} heirarchy={[config.id]} />
           ) : (
             <p>Loading...</p>
           )}
         </div>
-      </div> 
+      </div>
       <RightSidebar config={config} selectedItemId={selectedItemId} />
       {/* <button onClick={handleTransmit}>Transmit</button> */}
     </div>

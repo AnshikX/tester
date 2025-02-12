@@ -1,12 +1,13 @@
 import classNames from "classnames";
 import PropTypes from "prop-types";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useDrop } from "react-dnd";
 
 const ACCEPTS = ["HTML", "TEXT"];
 
 const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
+  const randomId = useMemo(() => crypto.randomUUID(), []);
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: ACCEPTS,
 
@@ -30,6 +31,13 @@ const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
       const parent = dropZoneRef.current.parentElement;
       const computedStyle = window.getComputedStyle(parent);
       var isRow = false;
+      if (computedStyle.display === "inline") {
+        dropZoneRef.current.style.display = "inline";
+        const dropZone = document.getElementById(randomId)
+        dropZone.style.paddingLeft = "10px";
+        dropZone.style.paddingLeft = "10px";
+        dropZone.style.display = "inline";
+      }
       if (computedStyle.display === "flex") {
         isRow = computedStyle.flexDirection === "row";
       } else if (computedStyle.display === "grid") {
@@ -45,7 +53,7 @@ const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
         dropZoneRef.current.classList.add("row-drop");
       }
     }
-  }, [dropZoneRef, isOnly]);
+  }, [dropZoneRef, isOnly, randomId]);
 
   const isActive = isOver && canDrop;
 
@@ -54,6 +62,7 @@ const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
       <div
         className={classNames("dropZone", { active: isActive }, className)}
         ref={drop}
+        id={randomId}
       >
         {children}
       </div>
