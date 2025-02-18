@@ -16,6 +16,7 @@ import { DndProvider } from "react-dnd";
 import { ConfigProvider } from "/src/components/contexts/ConfigContext.jsx";
 import { SelectionProvider } from "/src/components/contexts/SelectionContext.jsx";
 import { VisibilityProvider } from "/src/components/contexts/VisibilityContext.jsx";
+import { PropProvider } from "/src/components/contexts/PropContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -27,13 +28,14 @@ const router = createBrowserRouter(
         path="breeze/config-builder"
         element={
           <VisibilityProvider>
+            <PropProvider>
               <ConfigProvider>
             <SelectionProvider>
                 <DndProvider backend={HTML5Backend}>
                   <Container />
                 </DndProvider>
             </SelectionProvider>
-              </ConfigProvider>
+              </ConfigProvider></PropProvider>
           </VisibilityProvider>
         }
       />

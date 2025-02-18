@@ -9,6 +9,7 @@ import TextRenderer from "./elements/TextRenderer";
 import HTMLRenderer from "./elements/HTMLRenderer";
 import ComponentRenderer from "./elements/ComponentRenderer";
 import { useVisibility } from "./contexts/VisibilityContext";
+import MapRenderer from "./elements/MapRenderer";
 
 const Renderer = ({
   item,
@@ -16,6 +17,7 @@ const Renderer = ({
   heirarchy = [],
   prevId = null,
   isFirst = true,
+  isPreview
 }) => {
   const { removeChildById, updateItem, addItemToId } = useConfig();
   const { visibilityState, hoveredItemId } = useVisibility();
@@ -45,7 +47,6 @@ const Renderer = ({
   const addChild = useCallback(
     (newChild, offset, index) => {
       const newItem = JSON.parse(JSON.stringify(newChild));
-      console.log(newChild)
       addItemToId(newItem, item.id, offset + index);
     },
     [addItemToId, item.id]
@@ -56,6 +57,7 @@ const Renderer = ({
       const updatedChildren = [...item.children];
       updatedChildren[index] = child;
       item.children = updatedChildren;
+      console.log(child)
       updateItem({ ...item });
     },
     [item, updateItem]
@@ -63,6 +65,7 @@ const Renderer = ({
 
   const handleDrop = useCallback(
     (draggedItem, offset = 0) => {
+      console.log("----")
       addSibling(draggedItem, offset);
     },
     [addSibling]
@@ -128,11 +131,11 @@ const Renderer = ({
   
   return (
     <>
-      <DropZone
+      {!isPreview && addSibling &&<DropZone
         onDrop={(draggedItem) => handleDrop(draggedItem, 0)}
         position="top"
         heirarchy={firstDropZoneHeriarchy}
-      />
+      />}
       {item.elementType === "TEXT" ? (
         <TextRenderer
           item={item}
@@ -142,6 +145,7 @@ const Renderer = ({
           updateItem={updateItem}
           commonStyle={commonStyle}
           drag={drag}
+          isPreview={isPreview}
         />
       ) : item.elementType === "HTML" || item.elementType === "html" || item.elementType === "THIRD_PARTY" ? (
         <HTMLRenderer
@@ -154,6 +158,7 @@ const Renderer = ({
           addChild={addChild}
           updateChild={updateChild}
           drag={drag}
+          isPreview={isPreview}
         />
       ) : item.elementType === "COMPONENT" ? (
         <ComponentRenderer
@@ -166,8 +171,21 @@ const Renderer = ({
           addChild={addChild}
           updateChild={updateChild}
           drag={drag}
+          isPreview={isPreview}
         />
-      ) : (
+      ) : item.elementType === "MAP" ? (
+        <MapRenderer
+          item={item}
+          handleSelect={handleSelect}
+          handleMouseOver={handleMouseOver} 
+          handleMouseOut={handleMouseOut}
+          heirarchy={heirarchy}
+          commonStyle={commonStyle}
+          drag={drag}
+          isPreview={isPreview}
+        />
+      )
+      :(
         <div
           className="component unknown"
           ref={(node) => drag(node)}
@@ -179,14 +197,14 @@ const Renderer = ({
           Unknown Element
         </div>
       )}
-      <OverlayBar
+      {!isPreview && <OverlayBar
         itemId={item.id}
         itemLabel={item.label || item.tagName || item.elementType}
         onDelete={handleDelete}
         isVisible={isHovered || isSelected}
         setIsHovered={setIsHovered}
         isFirst={isFirst}
-      />
+      />}
     </>
   );
 };
@@ -213,6 +231,7 @@ Renderer.propTypes = {
   heirarchy: PropTypes.array,
   prevId: PropTypes.string,
   isFirst: PropTypes.bool,
+  isPreview: PropTypes.bool.isRequired,
 };
 
 export default Renderer;

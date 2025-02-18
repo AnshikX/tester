@@ -2,15 +2,13 @@ import { useEffect } from "react";
 import { useState } from "react";
 const ankur = ({ prop1 }) => {
   const [state, setState] = useState();
+  const mapVar = [1, 2, 3, 4, 5];
+  const anushka = async () => {};
   return (
-    <div style={{ backgroundColor: undefined }}>
-      Hello world<span>Hiiiii</span>
-      <div className={"row"}>
-        <div className={"col"}>Hello World</div>
-        <div className={"col"}>Hello World</div>
-        <div className={"col"}>Hello World</div>
-        <div className={"col"}>Hello World</div>
-      </div>
+    <div onBlur={123} onCopy={"123"} style={{ backgroundColor: "#ffffff" }}>
+      <div className={"container"}>Hello World</div>
+      <div className={"container"}>Hello World</div>
+      {anushka.map((item) => {})}
     </div>
   );
 };

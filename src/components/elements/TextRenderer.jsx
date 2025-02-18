@@ -9,6 +9,7 @@ const TextRenderer = ({
   handleMouseOut,
   commonStyle,
   drag,
+  isPreview
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -34,7 +35,9 @@ const TextRenderer = ({
     }
   };
 
-  return isEditing ? (
+  return isPreview ? (
+    item.value || "Empty Text"
+  ) : isEditing ? (
     <input
       id={item.id}
       type="text"
@@ -71,6 +74,7 @@ TextRenderer.propTypes = {
   handleMouseOut: PropTypes.func.isRequired,
   commonStyle: PropTypes.object.isRequired,
   drag: PropTypes.func.isRequired,
+  isPreview: PropTypes.bool.isRequired
 };
 
 export default TextRenderer;

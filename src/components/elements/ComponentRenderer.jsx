@@ -14,6 +14,7 @@ const ComponentRenderer = ({
   addChild,
   updateChild,
   drag,
+  isPreview,
 }) => {
   return (
     <div
@@ -44,32 +45,35 @@ const ComponentRenderer = ({
                   }
                   heirarchy={[...heirarchy, child.id]}
                   isFirst={false}
+                  isPreview={isPreview}
                 />
               );
             })}
-            {item.children.length === 0 ? (
-              <DropZone
-                onDrop={(addedItem) =>
-                  addChild(addedItem, 0, item.children.length)
-                }
-                position="bottom"
-                isOnly={true}
-                heirarchy={[...heirarchy, item.id]}
-              >
-                DROP HERE
-              </DropZone>
-            ) : (
-              <DropZone
-                onDrop={(addedItem) =>
-                  addChild(addedItem, 0, item.children.length)
-                }
-                position="bottom"
-                heirarchy={[
-                  ...heirarchy,
-                  item.id,
-                  item.children[item.children.length - 1].id,
-                ]}
-              />
+            {!isPreview && (
+              item.children.length === 0 ? (
+                <DropZone
+                  onDrop={(addedItem) =>
+                    addChild(addedItem, 0, item.children.length)
+                  }
+                  position="bottom"
+                  isOnly={true}
+                  heirarchy={[...heirarchy, item.id]}
+                >
+                  DROP HERE
+                </DropZone>
+              ) : (
+                <DropZone
+                  onDrop={(addedItem) =>
+                    addChild(addedItem, 0, item.children.length)
+                  }
+                  position="bottom"
+                  heirarchy={[
+                    ...heirarchy,
+                    item.id,
+                    item.children[item.children.length - 1].id,
+                  ]}
+                />
+              )
             )}
           </>
         ) : null
@@ -93,6 +97,7 @@ ComponentRenderer.propTypes = {
   addChild: PropTypes.func.isRequired,
   updateChild: PropTypes.func.isRequired,
   drag: PropTypes.func.isRequired,
+  isPreview: PropTypes.bool.isRequired
 };
 
 export default ComponentRenderer;

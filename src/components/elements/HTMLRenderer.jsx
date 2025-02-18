@@ -15,12 +15,9 @@ const HTMLRendererX = ({
   addChild,
   updateChild,
   drag,
+  isPreview,
 }) => {
   const { localStyles, selectedItemId } = useSelection();
-
-  useEffect(() => {
-    console.log("HTMLRenderer re-rendered");
-  }, [heirarchy]);
 
   // Stabilizing the heirarchy to avoid unnecessary re-renders
   const stableHeirarchy = useMemo(
@@ -32,15 +29,27 @@ const HTMLRendererX = ({
     if (!item.attributes) return {};
   
     return Object.entries(item.attributes).reduce((acc, [key, value]) => {
+      if (key.startsWith("on")) {
+        // Skip event listeners
+        return acc;
+      }
+  
       if (key === "style" && value?.type === "OBJECT") {
-        acc[key] = Object.entries(value.properties).reduce((styleAcc, [styleKey, styleValue]) => {
-          console.log(item.attributes);
-          styleAcc[styleKey] = getValue(styleValue?.value ?? styleValue);
+        const computedStyles = Object.entries(value.properties).reduce((styleAcc, [styleKey, styleValue]) => {
+          styleAcc[styleKey] = styleValue.value;
           return styleAcc;
         }, {});
+  
+        // Add padding if not already set
+        if (!computedStyles.hasOwnProperty("padding")) {
+          computedStyles["padding"] = "4px";
+        }
+  
+        acc[key] = computedStyles;
       } else {
         acc[key] = getValue(value);
       }
+  
       return acc;
     }, {});
   }, [item.attributes]);
@@ -68,10 +77,11 @@ const HTMLRendererX = ({
                 }
                 heirarchy={[...stableHeirarchy, child.id]}
                 isFirst={false}
+                isPreview={isPreview}
               />
             );
           }),
-          item.children.length === 0 ? (
+          item.children.length === 0 && !isPreview ? (
             <DropZone
               key={`${item.id}-drop`}
               onDrop={(addedItem) =>
@@ -84,22 +94,24 @@ const HTMLRendererX = ({
               DROP HERE
             </DropZone>
           ) : (
-            <DropZone
-              key={`${item.id}-drop-bottom`}
-              onDrop={(addedItem) =>
-                addChild(addedItem, 0, item.children.length)
-              }
-              position="bottom"
-              heirarchy={[
-                ...stableHeirarchy,
-                item.id,
-                item.children[item.children.length - 1].id,
-              ]}
-            />
+            !isPreview && (
+              <DropZone
+                key={`${item.id}-drop-bottom`}
+                onDrop={(addedItem) =>
+                  addChild(addedItem, 0, item.children.length)
+                }
+                position="bottom"
+                heirarchy={[
+                  ...stableHeirarchy,
+                  item.id,
+                  item.children[item.children.length - 1].id,
+                ]}
+              />
+            )
           ),
         ]
       : [];
-  }, [item, stableHeirarchy, addChild, updateChild]);
+  }, [item, stableHeirarchy, addChild, updateChild, isPreview]);
 
   return React.createElement(
     item.tagName || "div",
@@ -128,7 +140,8 @@ const HTMLRenderer = React.memo(HTMLRendererX, (prevProps, nextProps) => {
     prevProps.commonStyle === nextProps.commonStyle &&
     prevProps.drag === nextProps.drag &&
     prevProps.addChild === nextProps.addChild &&
-    prevProps.updateChild === nextProps.updateChild
+    prevProps.updateChild === nextProps.updateChild &&
+    prevProps.isPreview === nextProps.isPreview
   );
 });
 
@@ -147,6 +160,7 @@ HTMLRendererX.propTypes = {
   addChild: PropTypes.func.isRequired,
   updateChild: PropTypes.func.isRequired,
   drag: PropTypes.func.isRequired,
+  isPreview: PropTypes.bool.isRequired
 };
 
 export default HTMLRenderer;

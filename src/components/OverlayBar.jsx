@@ -6,55 +6,103 @@ import deleteButton from "./assets/svgs/delete-button.svg";
 const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFirst }) => {
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
+  // console.log(element)
   const getPosition = useCallback(() => {
     const element = document.getElementById(itemId);
-    if (!element) return pos;
 
+    if (!element) return { top: 0, left: 0, width: 0, height: 0 };
     const rect = element.getBoundingClientRect();
-    const newPos = {
+    return {
       top: rect.top + window.scrollY,
       left: rect.left + window.scrollX,
       width: rect.width,
       height: rect.height,
     };
-
-    if (
-      pos.top === newPos.top &&
-      pos.left === newPos.left &&
-      pos.width === newPos.width &&
-      pos.height === newPos.height
-    ) {
-      return pos;
-    }
-
-    return newPos;
-  }, [itemId, pos]);
-
+  }, [itemId]);
   useEffect(() => {
-    const element = document.getElementById(itemId);
-    if (!element) return;
-
+    let animationFrameId;
+    let isAnimating = false;
+  
     const updatePosition = () => {
-      setTimeout(() => {
-        setPos(getPosition());
-      }, 0);
+      setPos((prevPos) => {
+        const newPos = getPosition();
+        if (
+          prevPos.top !== newPos.top ||
+          prevPos.left !== newPos.left ||
+          prevPos.width !== newPos.width ||
+          prevPos.height !== newPos.height
+        ) {
+          return newPos;
+        }
+        return prevPos;
+      });
+  
+      // Only continue the loop if an animation is happening
+      if (isAnimating) {
+        animationFrameId = requestAnimationFrame(updatePosition);
+      }
     };
-
-    updatePosition();
-
-    const observer = new MutationObserver(updatePosition);
-    observer.observe(element, { attributes: true, childList: true, subtree: true });
-
+  
+    const element = document.getElementById(itemId);
+    if (!element) {
+      const observer = new MutationObserver(() => {
+        const element = document.getElementById(itemId);
+        if (element) {
+          observer.disconnect();
+          updatePosition();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      return () => observer.disconnect();
+    }
+  
+    updatePosition(); // Initial update
+  
+    // Mutation Observer for content changes
+    const mutationObserver = new MutationObserver(updatePosition);
+    mutationObserver.observe(element, { characterData: true, subtree: true, childList: true });
+  
+    // Resize Observer
+    const resizeObserver = new ResizeObserver(updatePosition);
+    resizeObserver.observe(element);
+  
+    // Intersection Observer
+    const intersectionObserver = new IntersectionObserver(updatePosition);
+    intersectionObserver.observe(element);
+  
+    // Start listening for global animations
+    const handleAnimationStart = () => {
+      isAnimating = true;
+      updatePosition();
+      animationFrameId = requestAnimationFrame(updatePosition);
+    };
+  
+    const handleAnimationEnd = () => {
+      isAnimating = false;
+      cancelAnimationFrame(animationFrameId);
+    };
+  
+    document.body.addEventListener("animationstart", handleAnimationStart);
+    document.body.addEventListener("animationiteration", handleAnimationStart);
+    document.body.addEventListener("animationend", handleAnimationEnd);
+    document.body.addEventListener("transitionend", handleAnimationEnd);
+  
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
-
+  
     return () => {
-      observer.disconnect();
+      mutationObserver.disconnect();
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.body.removeEventListener("animationstart", handleAnimationStart);
+      document.body.removeEventListener("animationiteration", handleAnimationStart);
+      document.body.removeEventListener("animationend", handleAnimationEnd);
+      document.body.removeEventListener("transitionend", handleAnimationEnd);
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [getPosition, itemId]);
-
+  }, [getPosition, itemId, isVisible, itemLabel]);
   const overlayStyle = {
     position: "fixed",
     top: `${pos.top}px`,
@@ -80,6 +128,7 @@ const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFi
     gap: "10px",
     alignItems: "center",
   };
+
   return createPortal(
     <>
       <div

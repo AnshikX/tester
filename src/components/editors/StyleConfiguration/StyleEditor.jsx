@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { STYLECATEGORIES } from "./constants/StyleCategoriesConstants";
-import { useConfig } from "./contexts/ConfigContext";
-import { useSelection } from "./contexts/SelectionContext";
+import { STYLECATEGORIES } from "../../constants/StyleCategoriesConstants";
+import { useConfig } from "../../contexts/ConfigContext";
+import { useSelection } from "../../contexts/SelectionContext";
 
 const debounce = (func, delay) => {
   let timeout;
@@ -13,29 +13,39 @@ const debounce = (func, delay) => {
 
 const StyleEditor = () => {
   const { updateStyles } = useConfig();
-  const { selectedItem, selectedItemId, localStyles, setLocalStyles } =
-    useSelection();
+  const { selectedItem, selectedItemId, localStyles, setLocalStyles } = useSelection();
   const [expandedCategory, setExpandedCategory] = useState(null);
 
   const stylesRef = useRef(localStyles);
-
+console.log(selectedItem)
   useEffect(() => {
-    setLocalStyles(selectedItem?.attributes?.style || {});
+    if (selectedItem?.attributes?.style) {
+      setLocalStyles({
+        type: "OBJECT",
+        properties: { ...selectedItem.attributes.style.properties },
+      });
+    } else {
+      setLocalStyles({ type: "OBJECT", properties: {} });
+    }
   }, [selectedItemId, selectedItem, setLocalStyles]);
+
   const handleStyleChange = (property, value) => {
     const newValue =
       typeof value === "object" ? `${value.value}${value.unit}` : value;
 
-    const updatedStyles = {
+    stylesRef.current = {
       ...stylesRef.current,
-      [property]: {
-        id: property,
-        value: { type: "STRING", value: newValue },
+      properties: {
+        ...stylesRef.current.properties,
+        [property]: {
+          id: property,
+          type: "STRING",
+          value: newValue,
+        },
       },
     };
 
-    stylesRef.current = updatedStyles;
-    setLocalStyles(updatedStyles);
+    setLocalStyles(stylesRef.current);
 
     const updateConfigDebounce = debounce(() => {
       if (selectedItem) {
@@ -45,7 +55,10 @@ const StyleEditor = () => {
             ...selectedItem.attributes,
             style: {
               type: "OBJECT",
-              properties: stylesRef.current,
+              properties: {
+                ...selectedItem.attributes?.style?.properties,
+                ...stylesRef.current.properties,
+              },
             },
           },
         });
@@ -55,12 +68,32 @@ const StyleEditor = () => {
     updateConfigDebounce();
   };
 
-  const getStyleValue = (name) => {
-    if (localStyles?.[name]?.value?.value) {
-      return localStyles[name].value.value;
+  const handleReset = (property) => {
+    const updatedStyles = { ...stylesRef.current };
+    delete updatedStyles.properties[property];
+
+    setLocalStyles(updatedStyles);
+    stylesRef.current = updatedStyles;
+
+    if (selectedItem) {
+      updateStyles({
+        ...selectedItem,
+        attributes: {
+          ...selectedItem.attributes,
+          style: {
+            type: "OBJECT",
+            properties: {
+              ...updatedStyles.properties,
+            },
+          },
+        },
+      });
     }
-    if (selectedItem?.attributes?.style?.properties?.[name]?.value?.value) {
-      return selectedItem.attributes.style.properties[name].value.value;
+  };
+
+  const getStyleValue = (name) => {
+    if (localStyles?.properties?.[name]?.value) {
+      return localStyles.properties[name].value;
     }
     const defaultValues = {
       color: "#ffffff",
@@ -68,13 +101,6 @@ const StyleEditor = () => {
       height: "0px",
     };
     return defaultValues[name] || "";
-  };
-
-  const handleClear = (name) => {
-    const updatedStyles = { ...localStyles };
-    delete updatedStyles[name];
-    setLocalStyles({ ...updatedStyles });
-    stylesRef.current = updatedStyles;
   };
 
   return (
@@ -85,9 +111,7 @@ const StyleEditor = () => {
         <div key={category} style={{ marginBottom: "5px" }}>
           <div
             onClick={() =>
-              setExpandedCategory(
-                expandedCategory === category ? null : category
-              )
+              setExpandedCategory(expandedCategory === category ? null : category)
             }
             style={{
               cursor: "pointer",
@@ -142,14 +166,9 @@ const StyleEditor = () => {
                           fontSize: "13px",
                         }}
                       />
-                      {/* {(getStyleValue(name)|| getStyleValue(name) )&& (
-                        <button
-                          onClick={() => handleClear(name)}
-                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
-                        >
-                          Clearsdddd
-                        </button>
-                      )} */}
+                      {getStyleValue(name) && (
+                        <button onClick={() => handleReset(name)}>Reset</button>
+                      )}
                     </div>
                   )}
 
@@ -169,14 +188,9 @@ const StyleEditor = () => {
                         }
                         style={{ width: "60px", height: "40px" }}
                       />
-                      {/* {getStyleValue(name) !== "#ffffff" && getStyleValue(name) && (
-                        <button
-                          onClick={() => handleClear(name)}
-                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
-                        >
-                          Clearasd
-                        </button>
-                      )} */}
+                      {(getStyleValue(name) !== "#ffffff" && getStyleValue(name)) && (
+                        <button onClick={() => handleReset(name)}>Reset</button>
+                      )}
                     </div>
                   )}
 
@@ -204,14 +218,9 @@ const StyleEditor = () => {
                           {option}
                         </label>
                       ))}
-                      {/* {getStyleValue(name) && (
-                        <button
-                          onClick={() => handleClear(name)}
-                          style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
-                        >
-                          Clearssfd
-                        </button>
-                      )} */}
+                      {getStyleValue(name) && (
+                        <button onClick={() => handleReset(name)}>Reset</button>
+                      )}
                     </div>
                   )}
 
@@ -265,31 +274,10 @@ const StyleEditor = () => {
                           <option value="vw">vw</option>
                           <option value="vh">vh</option>
                         </select>
-                        {/* { (getStyleValue(name) !== "0px" && getStyleValue(name)) && (
-                          <button
-                            onClick={() => handleClear(name)}
-                            style={{ padding: "2px 6px", fontSize: "12px", cursor: "pointer" }}
-                          >
-                            Clearxczxc
-                          </button>
-                        )} */}
+                        {(getStyleValue(name) !== "0px" && getStyleValue(name)) && (
+                          <button onClick={() => handleReset(name)}>Reset</button>
+                        )}
                       </div>
-                      <br />
-                      <input
-                        type="range"
-                        min="-50"
-                        max="200"
-                        value={parseFloat(getStyleValue(name)) || 0}
-                        onChange={(e) =>
-                          handleStyleChange(name, {
-                            value: e.target.value,
-                            unit:
-                              getStyleValue(name).replace(/[0-9.-]/g, "") ||
-                              "px",
-                          })
-                        }
-                        style={{ width: "100%" }}
-                      />
                     </>
                   )}
                 </div>
@@ -317,3 +305,4 @@ const StyleEditor = () => {
 };
 
 export default StyleEditor;
+  

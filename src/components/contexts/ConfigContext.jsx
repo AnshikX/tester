@@ -31,6 +31,7 @@ export const ConfigProvider = ({ children }) => {
   };
 
   const updateItem = (updatedItem) => {
+    console.log(updateItem,"asdfghjkjhgfd")
     const updateItemRecursive = (parent) => {
       if (parent.id === updatedItem.id) {
         return { ...updatedItem };
@@ -101,13 +102,66 @@ export const ConfigProvider = ({ children }) => {
     });
   };
   
+  const updateProp = (itemId, propName, propValue, propType) => {
+    const updatePropRecursive = (parent) => {
+      if (parent.id === itemId) {
+        return {
+          ...parent,
+          attributes: {
+            ...parent.attributes,
+            [propName]: { type: propType, value: propValue },
+          },
+        };
+      }
+      if (parent.children) {
+        return {
+          ...parent,
+          children: parent.children.map(updatePropRecursive),
+        };
+      }
+      return parent;
+    };
+  
+    setConfig((prevConfig) => {
+      const updatedConfig = updatePropRecursive(prevConfig);
+      console.log("Updated config after prop update:", updatedConfig);
+      return updatedConfig;
+    });
+  };
+
+  const updateMapConfig = (itemId, mapParams, mapVariable) => {
+    const updateMapRecursive = (parent) => {
+      if (parent.id === itemId) {
+        return {
+          ...parent,
+          mapParams: mapParams ?? parent.mapParams, // Update only if provided
+          mapVariable: mapVariable ?? parent.mapVariable,
+        };
+      }
+      if (parent.children) {
+        return {
+          ...parent,
+          children: parent.children.map(updateMapRecursive),
+        };
+      }
+      return parent;
+    };
+  
+    setConfig((prevConfig) => {
+      const updatedConfig = updateMapRecursive(prevConfig);
+      console.log("Updated config after map update:", updatedConfig);
+      return updatedConfig;
+    });
+  };
+  
+  
   ConfigProvider.propTypes = {
     children: PropTypes.node.isRequired,
   };
 
   return (
     <ConfigContext.Provider
-      value={{ config, setConfig, removeChildById, updateItem, addItemToId, updateStyles }}
+      value={{ config, setConfig, removeChildById, updateItem, addItemToId, updateStyles, updateProp, updateMapConfig }}
     >
       {children}
     </ConfigContext.Provider>
