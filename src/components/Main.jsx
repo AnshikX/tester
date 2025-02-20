@@ -13,7 +13,7 @@ const Main = ({ prop1 }) => {
       {mapVar.map((item) => {
         if (item % 2 === 0) {
           return (
-            <div style={{ backgroundColor: "#be7474", color: "#ffffff" }}>
+            <div style={{ backgroundColor: "#be7474", color: "#ff0000" }}>
               Anushkaa
             </div>
           );
@@ -22,7 +22,15 @@ const Main = ({ prop1 }) => {
         }
       })}
       {Main.map((item) => {
-        return <div>Bye</div>;
+        return (
+          <div
+            style={{ backgroundColor: "#ddc0c0", color: "#ff0000" }}
+            className={"d-flex"}
+          >
+            <div className={"col"} />
+            <div className={"col"}>Hello World</div>Bye
+          </div>
+        );
       })}
     </div>
   );

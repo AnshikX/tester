@@ -4,7 +4,7 @@ import deleteButton from "../../assets/svgs/delete-button.svg";
 
 const PropItem = ({ prop, onChange, onRemove }) => {
   const [inputValue, setInputValue] = useState(prop.value || "");
-
+  console.log(prop)
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setInputValue(newValue);

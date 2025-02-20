@@ -12,10 +12,9 @@ const debounce = (func, delay) => {
 };
 
 const StyleEditor = () => {
-  const { updateStyles } = useConfig();
-  const { selectedItem, selectedItemId, localStyles, setLocalStyles } = useSelection();
+  const { selectedItem, selectedItemId, localStyles, setLocalStyles, selectedContext } = useSelection();
   const [expandedCategory, setExpandedCategory] = useState(null);
-  console.log(selectedItemId)
+  const {updateStyles} = selectedContext
 
   const stylesRef = useRef(localStyles);
   useEffect(() => {

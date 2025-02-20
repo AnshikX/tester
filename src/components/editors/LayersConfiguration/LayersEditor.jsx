@@ -20,11 +20,11 @@ const LayersEditor = ({ node, level = 0, handleSelect }) => {
   const handleVisibilityToggle = (e) => {
     e.stopPropagation();
     toggleVisibility(node.id);
-    handleSelect(node.id);
+    handleSelect(node);
   };
 
   const handleSelectItem = () => {
-    handleSelect(node.id);
+    handleSelect(node);
   };
 
   const handleMouseOver = () => {

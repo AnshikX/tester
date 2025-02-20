@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
 import { useConfig } from "../../components/contexts/ConfigContext";
@@ -11,14 +11,13 @@ const MapRendererX = ({
   handleMouseOut,
   heirarchy,
   isPreview,
-  updateChild
+  updateItem,
 }) => {
-
-  const { config, setConfig, updateItem } = useConfig();
+  const { config, setConfig } = useConfig();
   const [metaConfig, setMetaConfig] = useState([]);
   const [selectedReturn, setSelectedReturn] = useState();
-  const { contexts, setContexts } = useSelection();
-  
+  const ref = useRef();
+
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
@@ -26,7 +25,6 @@ const MapRendererX = ({
         const { type, resource } = event.data;
         if (type === "resource" && resource.type === "metaConfig") {
           if (resource.statementId === item.id) {
-            console.log(resource.metaConfig);
             setMetaConfig(resource.metaConfig);
           }
         }
@@ -42,7 +40,7 @@ const MapRendererX = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [item.id]);
 
   useEffect(() => {
     window.parent.postMessage(
@@ -72,22 +70,20 @@ const MapRendererX = ({
         target = target?.[part];
       }
       if (target) {
+        ref.current = target;
         setConfig(target.value);
       }
     }
   }, [metaConfig, item, setConfig]);
 
-  useEffect(()=>{
-    setContexts((prevContext)=>{
-      return {
-        ...prevContext,
-        [item.id]: {
-          config,
-          updateitem: updateItem
-        }
-      }
-    })
-  },[item.id, config, updateItem, setContexts])
+
+  useEffect(() => {
+    const target = ref.current
+    if (config && target && target.value !== config) {
+      target.value = config
+      updateItem({...item})
+    }
+  }, [config, updateItem, item]);
 
   // Render mapped children
   // const renderedChildren = useMemo(() => {
@@ -140,7 +136,7 @@ const MapRenderer = React.memo(MapRendererX, (prevProps, nextProps) => {
     prevProps.commonStyle === nextProps.commonStyle &&
     prevProps.drag === nextProps.drag &&
     prevProps.isPreview === nextProps.isPreview &&
-    prevProps.updateChild ===  nextProps.updateChild
+    prevProps.updateChild === nextProps.updateChild
   );
 });
 
@@ -157,6 +153,7 @@ MapRendererX.propTypes = {
   handleMouseOver: PropTypes.func.isRequired,
   handleMouseOut: PropTypes.func.isRequired,
   commonStyle: PropTypes.object.isRequired,
+  updateItem: PropTypes.func.isRequired,
   heirarchy: PropTypes.array.isRequired,
   isPreview: PropTypes.bool.isRequired,
 };

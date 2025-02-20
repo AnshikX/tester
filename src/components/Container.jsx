@@ -10,7 +10,7 @@ import { usePropContext } from "./contexts/PropContext";
 const Container = () => {
   const { config, setConfig } = useConfig({});
   const [sidebarItems, setSidebarItems] = useState([]);
-  const { selectedItemId, setSelectedItemId } = useSelection();
+  const { selectedItemId, setSelectedItem } = useSelection();
   const [isPreview, setIsPreview] = useState(false);
   const { setScope, setProps } = usePropContext();
 
@@ -76,17 +76,17 @@ const Container = () => {
   }, [config]);
 
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event) => {
       if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
-        setSelectedItemId(null);
+        setSelectedItem(null);
+        
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
-  }, [setSelectedItemId]);
-  console.log(config)
+  }, [setSelectedItem]);
   return (
     <div className="body">
       <div className={`sideBar ${isPreview ? "hidden" : "visible width-15"}`}>

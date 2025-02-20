@@ -1,31 +1,23 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useConfig } from "./ConfigContext";
 
 const SelectionContext = createContext();
 
-const findNodeById = (node, id) => {
-  if (!node) return null;
-  if (node.id === id) return node;
-  if (node.children) {
-    for (const child of node.children) {
-      const found = findNodeById(child, id);
-      if (found) return found;
-    }
-  }
-  return null;
-};
-
 export const SelectionProvider = ({  children }) => {
-  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
-  const { config } = useConfig();
+  const context = useConfig();
+  
 
-  const [useSelectedContext, setSelectedContext] = useState();
+  useEffect(()=>{
+  console.log(selectedItem)
 
-  const [contexts, setContexts] = useState({});
+  },[selectedItem])
+  const [selectedContext, setSelectedContext] = useState(context);
 
-  const selectedItem = findNodeById(config, selectedItemId);
+
+  const selectedItemId = selectedItem?.id;
   const [localStyles, setLocalStyles] = useState(
     selectedItem?.attributes?.style || {}
   );
@@ -34,16 +26,14 @@ export const SelectionProvider = ({  children }) => {
     <SelectionContext.Provider
       value={{
         selectedItemId,
-        setSelectedItemId,
+        setSelectedItem,
         isResizing,
         setIsResizing,
         localStyles,
         setLocalStyles,
         selectedItem,
-        useSelectedContext,
+        selectedContext,
         setSelectedContext,
-        contexts,
-        setContexts,
       }}
     >
       {children}

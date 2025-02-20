@@ -138,7 +138,7 @@ export const ConfigProvider = ({ children }) => {
     updateConfig((prevConfig) => {
       const updatedConfig = updatePropRecursive(prevConfig);
       console.log("Updated config after prop update:", updatedConfig);
-      return updatedConfig;
+      return {...updatedConfig};
     });
   }, [updateConfig]);
 

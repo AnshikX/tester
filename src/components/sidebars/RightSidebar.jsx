@@ -14,10 +14,11 @@ const RightSidebar = ({ config }) => {
   const [stylesExpanded, setStylesExpanded] = useState(false);
   const [propsExpanded, setPropsExpanded] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
-  const { selectedItemId, setSelectedItemId, selectedItem } = useSelection();
+  const { selectedItemId, setSelectedItem, selectedItem, setSelectedContext } = useSelection();
 
-  const handleTileSelect = (id) => {
-    setSelectedItemId(id);
+  const handleTileSelect = (node) => {
+    setSelectedItem(node);
+    setSelectedContext(config)
   };
 
   if (selectedItemId === null) {

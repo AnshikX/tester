@@ -3,12 +3,13 @@ import PropTypes from "prop-types";
 import LayersEditor from "./LayersEditor";
 
 const MapLayers = ({ node, handleSelect }) => {
-  const { contexts, setSelectedItem } = useSelection();
+  const { contexts, setSelectedItem, setSelectedContext } = useSelection();
 
   const nodeContext = contexts[node.id] || {};
-  const handleMapSelect = (id) => {
-    setSelectedItem(id);
-    handleSelect(id);
+  const handleMapSelect = (node) => {
+    setSelectedContext(nodeContext)
+    setSelectedItem(node); 
+    handleSelect(node);
   };
   return (
     <LayersEditor

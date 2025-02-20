@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePropContext } from "../../contexts/PropContext";
 import { useSelection } from "../../contexts/SelectionContext";
-import { useConfig } from "../../contexts/ConfigContext"; // Import Config Context
 import PropItem from "./PropItem";
 
 const formatProps = (propsData) => {
@@ -14,11 +13,13 @@ const formatProps = (propsData) => {
 
 const PropsEditor = () => {
   const { props, scope } = usePropContext();
-  const { selectedItem, selectedItemId } = useSelection();
-  const { updateProp } = useConfig();
+  const { selectedItem, selectedItemId, selectedContext } = useSelection();
   const [formattedProps, setFormattedProps] = useState([]);
   const [selectedProps, setSelectedProps] = useState({});
+  const { updateProp } = selectedContext;
+  console.log(selectedItem)
 
+  console.log(selectedContext,"selectedContext")
   useEffect(() => {
     if (props) {
       setFormattedProps(formatProps(props));
@@ -57,6 +58,7 @@ const PropsEditor = () => {
   };
 
   const handleScopeChange = (id, selectedScope) => {
+    console.log(selectedScope,"selectedScope")
     updateProp(selectedItemId, id, "", selectedScope);
   };
   

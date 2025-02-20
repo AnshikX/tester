@@ -19,9 +19,10 @@ const Renderer = ({
   isFirst = true,
   isPreview,
 }) => {
-  const { removeChildById, updateItem, addItemToId } = useConfig();
+  const context = useConfig();
+  const { removeChildById, updateItem, addItemToId } = context;
   const { visibilityState, hoveredItemId } = useVisibility();
-  const { selectedItemId, setSelectedItemId } = useSelection();
+  const { selectedItemId, setSelectedItem , setSelectedContext} = useSelection();
   const [isHovered, setIsHovered] = useState(false);
   const firstDropZoneHeriarchy = [...heirarchy];
   const isSelected = selectedItemId === item.id;
@@ -77,12 +78,23 @@ const Renderer = ({
     (e) => {
       e.stopPropagation();
       if (selectedItemId !== item.id) {
-        setSelectedItemId(item.id);
+        setSelectedItem(item);
+        setSelectedContext(context);
       }
       setIsHovered(false);
+
     },
-    [selectedItemId, setSelectedItemId, item.id]
+
+    [selectedItemId, setSelectedItem, item, context, setSelectedContext]
   );
+
+  useEffect(()=>{
+    if(selectedItemId === item.id){
+      setSelectedItem(item)
+      setSelectedContext(context)
+    }
+  },[selectedItemId,setSelectedItem,setSelectedContext,item,context])
+
 
   const handleDelete = useCallback(
     (e) => {
@@ -183,7 +195,7 @@ const Renderer = ({
             handleMouseOver={handleMouseOver}
             handleMouseOut={handleMouseOut}
             heirarchy={heirarchy}
-          updateChild={updateChild}
+          updateItem={updateItem}
             commonStyle={commonStyle}
             isPreview={isPreview}
           />
