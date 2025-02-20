@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import DropZone from "../DropZone";
 import Renderer from "../Renderer";
@@ -17,7 +17,6 @@ const HTMLRendererX = ({
   drag,
   isPreview,
 }) => {
-  console.log(item,"itemsss")
   const { localStyles, selectedItemId } = useSelection();
 
   // Stabilizing the heirarchy to avoid unnecessary re-renders
@@ -25,38 +24,45 @@ const HTMLRendererX = ({
     () => [...heirarchy, item.id],
     [item.id, heirarchy]
   );
-  
+
   const processedAttributes = useMemo(() => {
     if (!item.attributes) return {};
-  
+
     return Object.entries(item.attributes).reduce((acc, [key, value]) => {
       if (key.startsWith("on")) {
         // Skip event listeners
         return acc;
       }
-  
+
       if (key === "style" && value?.type === "OBJECT") {
-        const computedStyles = Object.entries(value.properties).reduce((styleAcc, [styleKey, styleValue]) => {
-          styleAcc[styleKey] = styleValue.value;
-          return styleAcc;
-        }, {});
-  
+        const computedStyles = Object.entries(value.properties).reduce(
+          (styleAcc, [styleKey, styleValue]) => {
+            styleAcc[styleKey] = styleValue.value;
+            return styleAcc;
+          },
+          {}
+        );
+
         // Add padding if not already set
         if (!Object.prototype.hasOwnProperty.call(computedStyles, "padding")) {
           computedStyles["padding"] = "4px";
         }
-  
+
         acc[key] = computedStyles;
       } else {
         acc[key] = getValue(value);
       }
-  
+
       return acc;
     }, {});
   }, [item.attributes]);
-  
+
   const appliedStyles = useMemo(() => {
-    if (localStyles && selectedItemId === item.id && Object.keys(localStyles).length > 0) {
+    if (
+      localStyles &&
+      selectedItemId === item.id &&
+      Object.keys(localStyles).length > 0
+    ) {
       return { ...commonStyle, ...processedAttributes.style, ...localStyles };
     }
     return { ...commonStyle, ...processedAttributes.style };
@@ -134,7 +140,8 @@ const HTMLRenderer = React.memo(HTMLRendererX, (prevProps, nextProps) => {
   return (
     prevProps.item === nextProps.item &&
     prevProps.localStyles === nextProps.localStyles &&
-    JSON.stringify(prevProps.heirarchy) === JSON.stringify(nextProps.heirarchy) &&
+    JSON.stringify(prevProps.heirarchy) ===
+      JSON.stringify(nextProps.heirarchy) &&
     prevProps.handleMouseOver === nextProps.handleMouseOver &&
     prevProps.handleMouseOut === nextProps.handleMouseOut &&
     prevProps.handleSelect === nextProps.handleSelect &&
@@ -161,7 +168,7 @@ HTMLRendererX.propTypes = {
   addChild: PropTypes.func.isRequired,
   updateChild: PropTypes.func.isRequired,
   drag: PropTypes.func.isRequired,
-  isPreview: PropTypes.bool.isRequired
+  isPreview: PropTypes.bool.isRequired,
 };
 
 export default HTMLRenderer;
