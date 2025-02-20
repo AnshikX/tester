@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 import DropZone from "./DropZone";
 import PropTypes from "prop-types";
-import { useConfig } from "./contexts/ConfigContext";
+import { ConfigProvider, useConfig } from "./contexts/ConfigContext";
 import { useSelection } from "./contexts/SelectionContext";
 import OverlayBar from "./OverlayBar";
 import TextRenderer from "./elements/TextRenderer";
@@ -17,7 +17,7 @@ const Renderer = ({
   heirarchy = [],
   prevId = null,
   isFirst = true,
-  isPreview
+  isPreview,
 }) => {
   const { removeChildById, updateItem, addItemToId } = useConfig();
   const { visibilityState, hoveredItemId } = useVisibility();
@@ -57,7 +57,6 @@ const Renderer = ({
       const updatedChildren = [...item.children];
       updatedChildren[index] = child;
       item.children = updatedChildren;
-      console.log(child)
       updateItem({ ...item });
     },
     [item, updateItem]
@@ -65,7 +64,6 @@ const Renderer = ({
 
   const handleDrop = useCallback(
     (draggedItem, offset = 0) => {
-      console.log("----")
       addSibling(draggedItem, offset);
     },
     [addSibling]
@@ -75,7 +73,8 @@ const Renderer = ({
     firstDropZoneHeriarchy.push(prevId);
   }
 
-  const handleSelect = useCallback((e) => {
+  const handleSelect = useCallback(
+    (e) => {
       e.stopPropagation();
       if (selectedItemId !== item.id) {
         setSelectedItemId(item.id);
@@ -101,7 +100,7 @@ const Renderer = ({
       // position: "relative",
       // margin: "5px 0",
       // cursor: "pointer",
-      // // display: "block",  
+      // // display: "block",
     };
   }, [opacity]);
 
@@ -128,14 +127,15 @@ const Renderer = ({
   if (!isVisible) {
     return null;
   }
-  
   return (
     <>
-      {!isPreview && addSibling &&<DropZone
-        onDrop={(draggedItem) => handleDrop(draggedItem, 0)}
-        position="top"
-        heirarchy={firstDropZoneHeriarchy}
-      />}
+      {!isPreview && addSibling && (
+        <DropZone
+          onDrop={(draggedItem) => handleDrop(draggedItem, 0)}
+          position="top"
+          heirarchy={firstDropZoneHeriarchy}
+        />
+      )}
       {item.elementType === "TEXT" ? (
         <TextRenderer
           item={item}
@@ -147,7 +147,9 @@ const Renderer = ({
           drag={drag}
           isPreview={isPreview}
         />
-      ) : item.elementType === "HTML" || item.elementType === "html" || item.elementType === "THIRD_PARTY" ? (
+      ) : item.elementType === "HTML" ||
+        item.elementType === "html" ||
+        item.elementType === "THIRD_PARTY" ? (
         <HTMLRenderer
           item={item}
           handleSelect={handleSelect}
@@ -174,18 +176,19 @@ const Renderer = ({
           isPreview={isPreview}
         />
       ) : item.elementType === "MAP" ? (
-        <MapRenderer
-          item={item}
-          handleSelect={handleSelect}
-          handleMouseOver={handleMouseOver} 
-          handleMouseOut={handleMouseOut}
-          heirarchy={heirarchy}
-          commonStyle={commonStyle}
-          drag={drag}
-          isPreview={isPreview}
-        />
-      )
-      :(
+        <ConfigProvider>
+          <MapRenderer
+            item={item}
+            handleSelect={handleSelect}
+            handleMouseOver={handleMouseOver}
+            handleMouseOut={handleMouseOut}
+            heirarchy={heirarchy}
+          updateChild={updateChild}
+            commonStyle={commonStyle}
+            isPreview={isPreview}
+          />
+        </ConfigProvider>
+      ) : (
         <div
           className="component unknown"
           ref={(node) => drag(node)}
@@ -197,14 +200,16 @@ const Renderer = ({
           Unknown Element
         </div>
       )}
-      {!isPreview && <OverlayBar
-        itemId={item.id}
-        itemLabel={item.label || item.tagName || item.elementType}
-        onDelete={handleDelete}
-        isVisible={isHovered || isSelected}
-        setIsHovered={setIsHovered}
-        isFirst={isFirst}
-      />}
+      {!isPreview && (
+        <OverlayBar
+          itemId={item.id}
+          itemLabel={item.label || item.tagName || item.elementType}
+          onDelete={handleDelete}
+          isVisible={isHovered || isSelected}
+          setIsHovered={setIsHovered}
+          isFirst={isFirst}
+        />
+      )}
     </>
   );
 };

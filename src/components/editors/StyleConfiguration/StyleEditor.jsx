@@ -15,9 +15,9 @@ const StyleEditor = () => {
   const { updateStyles } = useConfig();
   const { selectedItem, selectedItemId, localStyles, setLocalStyles } = useSelection();
   const [expandedCategory, setExpandedCategory] = useState(null);
+  console.log(selectedItemId)
 
   const stylesRef = useRef(localStyles);
-console.log(selectedItem)
   useEffect(() => {
     if (selectedItem?.attributes?.style) {
       setLocalStyles({

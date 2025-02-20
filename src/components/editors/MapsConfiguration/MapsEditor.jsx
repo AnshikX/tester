@@ -8,26 +8,29 @@ import { usePropContext } from "../../contexts/PropContext";
 const MapsEditor = () => {
   const { selectedItem } = useSelection();
   const { updateMapConfig } = useConfig();
+  const { scope } = usePropContext();
+
   const [paramName, setParamName] = useState("");
   const [editingParam, setEditingParam] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedVariable, setSelectedVariable] = useState("");
-  const { scope } = usePropContext();
+  const [selectedVariable, setSelectedVariable] = useState({});
   const mapParams = useMemo(() => {
     return Array.isArray(selectedItem?.mapParams) ? selectedItem.mapParams : [];
   }, [selectedItem]);
-
+  console.log(selectedItem);
   useEffect(() => {
     if (selectedItem?.mapVariable) {
-      setSelectedVariable(selectedItem.mapVariable.name);
+      setSelectedVariable(selectedItem.mapVariable);
     }
-
     const hasItem = mapParams.some((p) => p.defaultName === "item");
     const hasIndex = mapParams.some((p) => p.defaultName === "index");
 
     if (!hasItem && hasIndex) {
       setErrorMessage("'item' must be added before 'index'.");
-    } else if ((!hasItem || !hasIndex) && mapParams.some((p) => p.defaultName === "array")) {
+    } else if (
+      (!hasItem || !hasIndex) &&
+      mapParams.some((p) => p.defaultName === "array")
+    ) {
       setErrorMessage("'item' and 'index' must be added before 'array'.");
     } else {
       setErrorMessage("");
@@ -43,19 +46,22 @@ const MapsEditor = () => {
     if (defaultName === "item") {
       updatedParams.unshift(newParam);
     } else if (defaultName === "index") {
-      const itemIndex = updatedParams.findIndex((p) => p.defaultName === "item");
+      const itemIndex = updatedParams.findIndex(
+        (p) => p.defaultName === "item"
+      );
       if (itemIndex !== -1) {
         updatedParams.splice(itemIndex + 1, 0, newParam);
       }
     } else if (defaultName === "array") {
-      const indexIndex = updatedParams.findIndex((p) => p.defaultName === "index");
+      const indexIndex = updatedParams.findIndex(
+        (p) => p.defaultName === "index"
+      );
       if (indexIndex !== -1) {
         updatedParams.splice(indexIndex + 1, 0, newParam);
       } else {
         updatedParams.push(newParam);
       }
     }
-
     updateMapConfig(selectedItem.id, updatedParams, selectedVariable);
     setParamName("");
   };
@@ -81,46 +87,68 @@ const MapsEditor = () => {
   };
 
   const handleCheckboxChange = (defaultName, checked) => {
+    if (
+      defaultName === "index" &&
+      !mapParams.some((p) => p.defaultName === "item")
+    ) {
+      setErrorMessage("'item' must be added before 'index'.");
+      return;
+    }
+
+    if (
+      defaultName === "array" &&
+      (!mapParams.some((p) => p.defaultName === "item") ||
+        !mapParams.some((p) => p.defaultName === "index"))
+    ) {
+      setErrorMessage("'item' and 'index' must be added before 'array'.");
+      return;
+    }
+
     if (checked) {
       handleAddParam(defaultName);
     } else {
       handleRemoveParam(defaultName);
     }
   };
-
+  console.log(scope);
   const handleVariableSelect = (e) => {
     const selectedName = e.target.value;
-    const selectedScope = scope.find((variable) => variable.name === selectedName);
-  
+    const selectedScope = scope.find(
+      (variable) => variable.label === selectedName
+    );
+
     if (!selectedScope) return;
-  
+
     const newVariable = {
-      name: selectedScope.name,
-      $ref: selectedScope.value,
+      name: selectedScope.label,
+      $ref: selectedScope.$ref,
       type: "SCOPE_VAR",
     };
-  
+
     setSelectedVariable(newVariable.name);
     updateMapConfig(selectedItem.id, mapParams, newVariable);
   };
-  
 
   if (!selectedItem || selectedItem.elementType !== "MAP") return null;
 
   return (
     <div className="maps-editor">
-      <h4 className="br-text-primary">Map Parameters</h4>
       {errorMessage && <p className="text-danger small-font">{errorMessage}</p>}
 
       <div className="mb-2">
         <strong>Map Variable:</strong>
-        <select value={selectedVariable} onChange={handleVariableSelect} className="form-select mt-2">
+        <select
+          value={scope.find((variable) => variable.$ref === selectedVariable.$ref)?.label || ""}
+          onChange={handleVariableSelect}
+          className="form-select mt-2"
+        >
           <option value="">Select a variable</option>
-          {Array.isArray(scope) && scope.map((variable, index) => (
-            <option key={index} value={variable.name}>
-              {variable.name}
-            </option>
-          ))}
+          {Array.isArray(scope) &&
+            scope.map((variable, index) => (
+              <option key={index} value={variable.$ref}>
+                {variable.label}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -150,9 +178,12 @@ const MapsEditor = () => {
           Array
         </label>
       </div>
-
       {mapParams.map((param) => (
-        <div key={param.defaultName} className="my-1 py-1 px-2 d-flex justify-content-between" style={{ borderRadius: "0.275rem" }}>
+        <div
+          key={param.defaultName}
+          className="my-1 py-1 px-2 d-flex justify-content-between"
+          style={{ borderRadius: "0.275rem" }}
+        >
           {editingParam === param.defaultName ? (
             <input
               type="text"

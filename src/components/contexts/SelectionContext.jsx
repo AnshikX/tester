@@ -16,18 +16,35 @@ const findNodeById = (node, id) => {
   return null;
 };
 
-export const SelectionProvider = ({ children }) => {
+export const SelectionProvider = ({  children }) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
   const { config } = useConfig();
 
+  const [useSelectedContext, setSelectedContext] = useState();
+
+  const [contexts, setContexts] = useState({});
+
   const selectedItem = findNodeById(config, selectedItemId);
-  const [localStyles, setLocalStyles] = useState(selectedItem?.attributes?.style || {});
-  
-  
+  const [localStyles, setLocalStyles] = useState(
+    selectedItem?.attributes?.style || {}
+  );
+
   return (
     <SelectionContext.Provider
-      value={{ selectedItemId, setSelectedItemId, isResizing, setIsResizing, localStyles, setLocalStyles, selectedItem }}
+      value={{
+        selectedItemId,
+        setSelectedItemId,
+        isResizing,
+        setIsResizing,
+        localStyles,
+        setLocalStyles,
+        selectedItem,
+        useSelectedContext,
+        setSelectedContext,
+        contexts,
+        setContexts,
+      }}
     >
       {children}
     </SelectionContext.Provider>

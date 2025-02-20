@@ -1,5 +1,3 @@
-import Ankur from "/src/components/ankur.jsx";
-
 import SandBox from "./SandBox.jsx";
 import {
   Routes,
@@ -17,11 +15,12 @@ import { ConfigProvider } from "/src/components/contexts/ConfigContext.jsx";
 import { SelectionProvider } from "/src/components/contexts/SelectionContext.jsx";
 import { VisibilityProvider } from "/src/components/contexts/VisibilityContext.jsx";
 import { PropProvider } from "/src/components/contexts/PropContext.jsx";
+import Main from "/src/components/Main.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      <Route path="/" element={<Ankur />} />
+      <Route path="/" element={<Main />} />
 
       <Route path="breeze/sandbox" element={<SandBox />} />
       <Route
@@ -30,12 +29,13 @@ const router = createBrowserRouter(
           <VisibilityProvider>
             <PropProvider>
               <ConfigProvider>
-            <SelectionProvider>
-                <DndProvider backend={HTML5Backend}>
-                  <Container />
-                </DndProvider>
-            </SelectionProvider>
-              </ConfigProvider></PropProvider>
+                <SelectionProvider>
+                  <DndProvider backend={HTML5Backend}>
+                    <Container />
+                  </DndProvider>
+                </SelectionProvider>
+              </ConfigProvider>
+            </PropProvider>
           </VisibilityProvider>
         }
       />

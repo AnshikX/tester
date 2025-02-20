@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useCallback } from "react";
 import PropTypes from "prop-types";
 
 const ConfigContext = createContext();
@@ -10,7 +10,11 @@ export const useConfig = () => {
 export const ConfigProvider = ({ children }) => {
   const [config, setConfig] = useState({});
 
-  const removeChildById = (id) => {
+  const updateConfig = useCallback((newConfig) => {
+    setConfig(newConfig);
+  }, []);
+
+  const removeChildById = useCallback((id) => {
     const removeChildRecursive = (parent) => {
       if (parent.children) {
         return {
@@ -23,15 +27,14 @@ export const ConfigProvider = ({ children }) => {
       return parent;
     };
 
-    setConfig((prevConfig) => {
+    updateConfig((prevConfig) => {
       const updatedConfig = removeChildRecursive(prevConfig);
       console.log("Updated config after removal:", updatedConfig);
       return updatedConfig;
     });
-  };
+  }, [updateConfig]);
 
-  const updateItem = (updatedItem) => {
-    console.log(updateItem,"asdfghjkjhgfd")
+  const updateItem = useCallback((updatedItem) => {
     const updateItemRecursive = (parent) => {
       if (parent.id === updatedItem.id) {
         return { ...updatedItem };
@@ -45,14 +48,14 @@ export const ConfigProvider = ({ children }) => {
       return parent;
     };
 
-    setConfig((prevConfig) => {
+    updateConfig((prevConfig) => {
       const updatedConfig = updateItemRecursive(prevConfig);
       console.log("Updated config after item update:", updatedConfig);
       return updatedConfig;
     });
-  };
+  }, [updateConfig]);
 
-  const addItemToId = (newItem, parentId, pos) => {
+  const addItemToId = useCallback((newItem, parentId, pos) => {
     const processTree = (parent) => {
       if (!parent?.children || !Array.isArray(parent.children)) {
         return parent;
@@ -74,17 +77,23 @@ export const ConfigProvider = ({ children }) => {
       };
     };
 
-    setConfig((prevConfig) => {
+    updateConfig((prevConfig) => {
       const updatedConfig = processTree(prevConfig);
       console.log("Updated config after adding:", updatedConfig);
       return updatedConfig;
     });
-  };
+  }, [updateConfig]);
 
-  const updateStyles = (updatedItem) => {
+  const updateStyles = useCallback((updatedItem) => {
     const updateStylesRecursive = (parent) => {
       if (parent.id === updatedItem.id) {
-        return { ...parent, attributes: { ...parent.attributes, style: updatedItem.attributes.style } };
+        return {
+          ...parent,
+          attributes: {
+            ...parent.attributes,
+            style: updatedItem.attributes.style,
+          },
+        };
       }
       if (parent.children) {
         return {
@@ -94,23 +103,26 @@ export const ConfigProvider = ({ children }) => {
       }
       return parent;
     };
-  
-    setConfig((prevConfig) => {
+
+    updateConfig((prevConfig) => {
       const updatedConfig = updateStylesRecursive(prevConfig);
       console.log("Updated config after style update:", updatedConfig);
       return updatedConfig;
     });
-  };
-  
-  const updateProp = (itemId, propName, propValue, propType) => {
+  }, [updateConfig]);
+
+  const updateProp = useCallback((itemId, propName, propValue, propType) => {
     const updatePropRecursive = (parent) => {
       if (parent.id === itemId) {
+        const updatedAttributes = { ...parent.attributes };
+        if (propValue === null || propValue === undefined) {
+          delete updatedAttributes[propName];
+        } else {
+          updatedAttributes[propName] = { type: propType, value: propValue };
+        }
         return {
           ...parent,
-          attributes: {
-            ...parent.attributes,
-            [propName]: { type: propType, value: propValue },
-          },
+          attributes: updatedAttributes,
         };
       }
       if (parent.children) {
@@ -119,22 +131,23 @@ export const ConfigProvider = ({ children }) => {
           children: parent.children.map(updatePropRecursive),
         };
       }
+
       return parent;
     };
-  
-    setConfig((prevConfig) => {
+
+    updateConfig((prevConfig) => {
       const updatedConfig = updatePropRecursive(prevConfig);
       console.log("Updated config after prop update:", updatedConfig);
       return updatedConfig;
     });
-  };
+  }, [updateConfig]);
 
-  const updateMapConfig = (itemId, mapParams, mapVariable) => {
+  const updateMapConfig = useCallback((itemId, mapParams, mapVariable) => {
     const updateMapRecursive = (parent) => {
       if (parent.id === itemId) {
         return {
           ...parent,
-          mapParams: mapParams ?? parent.mapParams, // Update only if provided
+          mapParams: mapParams ?? parent.mapParams,
           mapVariable: mapVariable ?? parent.mapVariable,
         };
       }
@@ -146,24 +159,34 @@ export const ConfigProvider = ({ children }) => {
       }
       return parent;
     };
-  
-    setConfig((prevConfig) => {
+
+    updateConfig((prevConfig) => {
       const updatedConfig = updateMapRecursive(prevConfig);
       console.log("Updated config after map update:", updatedConfig);
       return updatedConfig;
     });
-  };
-  
-  
+  }, [updateConfig]);
+
   ConfigProvider.propTypes = {
     children: PropTypes.node.isRequired,
   };
 
   return (
     <ConfigContext.Provider
-      value={{ config, setConfig, removeChildById, updateItem, addItemToId, updateStyles, updateProp, updateMapConfig }}
+      value={{
+        config,
+        setConfig,
+        updateConfig,
+        removeChildById,
+        updateItem,
+        addItemToId,
+        updateStyles,
+        updateProp,
+        updateMapConfig,
+      }}
     >
       {children}
     </ConfigContext.Provider>
   );
 };
+

@@ -12,24 +12,28 @@ const Container = () => {
   const [sidebarItems, setSidebarItems] = useState([]);
   const { selectedItemId, setSelectedItemId } = useSelection();
   const [isPreview, setIsPreview] = useState(false);
-  const { setScope, setProps } = usePropContext()
+  const { setScope, setProps } = usePropContext();
 
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
       if (event.origin === "http://localhost:3000" || true) {
-        const { type, resource } = event.data;
-        if (type === "resource" && resource.type === "componentConfig") {
-          setConfig(resource.component);
-        }
-        if (type === "resource" && resource.type === "sidebarItems") {
-          setSidebarItems(resource.sideBarItems);
-        }
-        if (type === "resource" && resource.type === "scope") {
-          setScope(resource.scope);
-        }
-        if (type === "resource" && resource.type === "props") {
-          setProps(resource.props);
+        const { type } = event.data;
+        if (type === "resource") {
+          const resource = event.data.resource;
+          if (resource.type === "componentConfig") {
+            setConfig(resource.component);
+          }
+          if (resource.type === "sidebarItems") {
+            setSidebarItems(resource.sideBarItems);
+          }
+          if (resource.type === "scope") {
+            console.log(resource.scope);
+            setScope(resource.scope);
+          }
+          if (resource.type === "props") {
+            setProps(resource.props);
+          }
         }
       }
     };
@@ -44,9 +48,9 @@ const Container = () => {
     );
 
     window.parent.postMessage(
-      { source: "APP", type: "request", request: { type: "props"} },
+      { source: "APP", type: "request", request: { type: "props" } },
       "*"
-    )
+    );
 
     window.parent.postMessage(
       { source: "APP", type: "request", request: { type: "scope" } },
@@ -69,15 +73,7 @@ const Container = () => {
       },
       "*"
     );
-    window.parent.postMessage(
-      {
-        source: "APP",
-        type: "resource",
-        resource: { type: "sidebarItems", selectedItemId: selectedItemId },
-      },
-      "*"
-    );
-  }, [config, selectedItemId]); 
+  }, [config]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -90,7 +86,7 @@ const Container = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [setSelectedItemId]);
-
+  console.log(config)
   return (
     <div className="body">
       <div className={`sideBar ${isPreview ? "hidden" : "visible width-15"}`}>
@@ -98,7 +94,7 @@ const Container = () => {
           <SideBarItem key={index} data={sidebarItem} />
         ))}
       </div>
-      <div className={`pageContainer ${isPreview ? 'width-100' : 'width-60'}`}>
+      <div className={`pageContainer ${isPreview ? "width-100" : "width-60"}`}>
         {/* Toggle Button Container */}
         <div className="toggleButtonContainer">
           <button
@@ -111,14 +107,20 @@ const Container = () => {
 
         <div className="page" id="page">
           {config && config.elementType ? (
-            <Renderer item={config} heirarchy={[config.id]} isPreview={isPreview} />
+            <Renderer
+              item={config}
+              heirarchy={[config.id]}
+              isPreview={isPreview}
+            />
           ) : (
             <p>Loading...</p>
           )}
         </div>
       </div>
 
-      <div className={`rightSidebar ${isPreview ? "hidden" : "visible width-25"}`}>
+      <div
+        className={`rightSidebar ${isPreview ? "hidden" : "visible width-25"}`}
+      >
         <RightSidebar config={config} selectedItemId={selectedItemId} />
       </div>
     </div>

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { useSelection } from "./contexts/SelectionContext";
-import { useVisibility } from "./contexts/VisibilityContext";
-import downArrow from "./assets/svgs/down-arrow.svg";
-import upArrow from "./assets/svgs/up-arrow.svg";
-import eyeOpen from "./assets/svgs/eye-open.svg";
-import eyeClosed from "./assets/svgs/eye-close.svg";
-import { useConfig } from "./contexts/ConfigContext";
+import { useSelection } from "../../contexts/SelectionContext";
+import { useVisibility } from "../../contexts/VisibilityContext";
+import downArrow from "../../assets/svgs/down-arrow.svg";
+import upArrow from "../../assets/svgs/up-arrow.svg";
+import eyeOpen from "../../assets/svgs/eye-open.svg";
+import eyeClosed from "../../assets/svgs/eye-close.svg";
+import { useConfig } from "../../contexts/ConfigContext";
+import MapsLayers from "./MapLayers";
 
-const TreeView = ({ node, level = 0, handleSelect }) => {
+const LayersEditor = ({ node, level = 0, handleSelect }) => {
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const { selectedItemId } = useSelection();
@@ -43,7 +44,7 @@ const TreeView = ({ node, level = 0, handleSelect }) => {
     e.stopPropagation();
     setIsEditing(true);
   };
-
+  
   return (
     <div
       style={{
@@ -93,10 +94,15 @@ const TreeView = ({ node, level = 0, handleSelect }) => {
         )}
       </div>
 
+      {node.elementType === "MAP" && expanded && (
+        <div className="treeChildren">
+          <MapsLayers node={node} handleSelect={handleSelect} />
+        </div>
+      )}
       {expanded && node.children && (
         <div className="treeChildren">
           {node.children.map((child) => (
-            <TreeView
+            <LayersEditor
               key={child.id}
               node={child}
               level={level + 1}
@@ -109,10 +115,10 @@ const TreeView = ({ node, level = 0, handleSelect }) => {
   );
 };
 
-TreeView.propTypes = {
+LayersEditor.propTypes = {
   node: PropTypes.object.isRequired,
   level: PropTypes.number,
   handleSelect: PropTypes.func.isRequired,
 };
 
-export default TreeView;
+export default LayersEditor;

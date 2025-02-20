@@ -17,6 +17,7 @@ const HTMLRendererX = ({
   drag,
   isPreview,
 }) => {
+  console.log(item,"itemsss")
   const { localStyles, selectedItemId } = useSelection();
 
   // Stabilizing the heirarchy to avoid unnecessary re-renders
@@ -41,7 +42,7 @@ const HTMLRendererX = ({
         }, {});
   
         // Add padding if not already set
-        if (!computedStyles.hasOwnProperty("padding")) {
+        if (!Object.prototype.hasOwnProperty.call(computedStyles, "padding")) {
           computedStyles["padding"] = "4px";
         }
   

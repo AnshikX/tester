@@ -62,7 +62,13 @@ const PropsEditor = () => {
   
 
   const handleRemove = (id) => {
-    updateProp(selectedItemId, id, undefined, undefined);
+    updateProp(selectedItemId, id, null, null);
+    setSelectedProps((prevProps) => {
+      const updatedProps = { ...prevProps };
+      delete updatedProps[id];
+      return updatedProps;
+    });
+  
   };
 
   const scopeOptions = [

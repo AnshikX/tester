@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import TreeView from "../TreeView";
+import LayersEditor from "../editors/LayersConfiguration/LayersEditor";
 import stackIcon from "../assets/svgs/stack.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
 import upArrow from "../assets/svgs/up-arrow.svg";
@@ -157,7 +157,7 @@ const RightSidebar = ({ config }) => {
 
       {treeExpanded &&
         (config ? (
-          <TreeView node={config} handleSelect={handleTileSelect} />
+          <LayersEditor node={config} handleSelect={handleTileSelect} />
         ) : (
           <p>Loading...</p>
         ))}
