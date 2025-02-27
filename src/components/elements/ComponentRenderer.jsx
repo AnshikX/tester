@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import DropZone from "../DropZone";
-import entities from "../Entities";
+// import entities from "../Entities";
 import Renderer from "../Renderer";
-
 const ComponentRenderer = ({
   item,
   handleSelect,
@@ -11,11 +10,26 @@ const ComponentRenderer = ({
   handleMouseOut,
   opacity,
   heirarchy,
-  addChild,
-  updateChild,
+  updateItem,
   drag,
   isPreview,
 }) => {
+  const [entities,setEntities ] = useState()
+  console.log(entities)
+  useEffect(()=>{
+
+    const func = async ()=>{
+      const entities = await import("../Entities")
+      setEntities(entities.default)
+    }
+    func()
+
+  },[])
+
+  if(!entities){
+    return null
+  }
+
   return (
     <div
       id={item.id}

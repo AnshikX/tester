@@ -1,17 +1,22 @@
 import { useEffect } from "react";
 import { useState } from "react";
+import Aaaa from "/src/components/Aaaa.jsx";
 const Main = ({ prop1 }) => {
   const [state, setState] = useState();
   const mapVar = [1, 2, 3, 4, 5];
   const obj = { username: "user", password: "password" };
   if (false) {
     return (
-      <div style={{ backgroundColor: "#e1c7c7" }}>
+      <div style={{ backgroundColor: "#ffffff" }}>
         <div className={"row"}>
           <div className={"col"}>Hello World</div>
         </div>
         {obj.map((item, index) => {
-          return <div onBlur={"1"} />;
+          return (
+            <div onBlur={"1"}>
+              <Aaaa className={"bg-dark"} />
+            </div>
+          );
         })}
       </div>
     );

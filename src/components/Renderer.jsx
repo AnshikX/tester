@@ -5,8 +5,8 @@ import PropTypes from "prop-types";
 import { useSelectedItemId,  useSetters } from "./contexts/SelectionContext";
 import OverlayBar from "./OverlayBar";
 import TextRenderer from "./elements/TextRenderer";
-import HTMLRenderer from "./elements/HTMLRenderer";
-import ComponentRenderer from "./elements/ComponentRenderer";
+import CombinedRenderer from "./elements/CombinedRenderer";
+// import ComponentRenderer from "./elements/ComponentRenderer";
 import { useVisibility } from "./contexts/VisibilityContext";
 import MapRenderer from "./elements/MapRenderer";
 
@@ -122,8 +122,9 @@ const Renderer = ({
         />
       ) : item.elementType === "HTML" ||
         item.elementType === "html" ||
+        item.elementType === "COMPONENT" ||
         item.elementType === "THIRD_PARTY" ? (
-        <HTMLRenderer
+        <CombinedRenderer
           item={item}
           handleSelect={handleSelect}
           key={item.id}
@@ -135,18 +136,18 @@ const Renderer = ({
           drag={drag}
           isPreview={isPreview}
         />
-      ) : item.elementType === "COMPONENT" ? (
-        <ComponentRenderer
-          item={item}
-          handleSelect={handleSelect}
-          handleMouseOver={handleMouseOver}
-          opacity={opacity}
-          handleMouseOut={handleMouseOut}
-          heirarchy={heirarchy}
-          updateItem={updateItem}
-          drag={drag}
-          isPreview={isPreview}
-        />
+      // ) : item.elementType === "COMPONENT" ? (
+      //   <ComponentRenderer
+      //     item={item}
+      //     handleSelect={handleSelect}
+      //     handleMouseOver={handleMouseOver}
+      //     opacity={opacity}
+      //     handleMouseOut={handleMouseOut}
+      //     heirarchy={heirarchy}
+      //     updateItem={updateItem}
+      //     drag={drag}
+      //     isPreview={isPreview}
+      //   />
       ) : item.elementType === "MAP" ? (
         <MapRenderer
           item={item}

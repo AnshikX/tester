@@ -1,4 +1,5 @@
 export const getValue = (conf) => {
+  console.log(conf,"HAHA")
   if (conf.type === "OBJECT") {
     const obj = {};
     Object.entries(conf.properties).forEach(([key, value]) => {
