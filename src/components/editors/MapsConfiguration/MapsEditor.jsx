@@ -1,27 +1,37 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSelection } from "../../contexts/SelectionContext";
-import { useConfig } from "../../contexts/ConfigContext";
+import { useSelectedItemDetails } from "../../contexts/SelectionContext";
 import deleteButton from "../../assets/svgs/delete-button.svg";
 import editButton from "../../assets/svgs/edit-button.svg";
 import { usePropContext } from "../../contexts/PropContext";
-
+const radioMethodOptions = [
+  { label: "keys", value: "keys" },
+  { label: "values", value: "values" },
+  { label: "entries", value: "entries" },
+];
 const MapsEditor = () => {
-  const { selectedItem } = useSelection();
-  const { updateMapConfig } = useConfig();
+  const itemDetails = useSelectedItemDetails();
   const { scope } = usePropContext();
 
   const [paramName, setParamName] = useState("");
   const [editingParam, setEditingParam] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedVariable, setSelectedVariable] = useState({});
+  const [selectedVariable, setSelectedVariable] = useState(null);
+  const [selectedMethod, setSelectedMethod] = useState(null);
+
   const mapParams = useMemo(() => {
-    return Array.isArray(selectedItem?.mapParams) ? selectedItem.mapParams : [];
-  }, [selectedItem]);
-  console.log(selectedItem);
+    return Array.isArray(itemDetails?.config?.mapParams)
+      ? itemDetails.config.mapParams
+      : [];
+  }, [itemDetails?.config]);
+
   useEffect(() => {
-    if (selectedItem?.mapVariable) {
-      setSelectedVariable(selectedItem.mapVariable);
+    if (itemDetails?.config?.mapVariable) {
+      setSelectedVariable(itemDetails.config.mapVariable);
     }
+    setSelectedMethod(itemDetails?.config?.method);
+  }, [itemDetails?.config]);
+
+  useEffect(() => {
     const hasItem = mapParams.some((p) => p.defaultName === "item");
     const hasIndex = mapParams.some((p) => p.defaultName === "index");
 
@@ -35,7 +45,20 @@ const MapsEditor = () => {
     } else {
       setErrorMessage("");
     }
-  }, [selectedItem, mapParams]);
+  }, [mapParams]);
+
+  const updateConfig = (newParams, newVariable) => {
+    if (!itemDetails?.setConfig) {
+      console.error("MapsEditor: setConfig is missing!", itemDetails);
+      return;
+    }
+
+    itemDetails.setConfig({
+      ...itemDetails.config,
+      mapParams: newParams, // This should reflect the checkbox state
+      mapVariable: newVariable || itemDetails.config.mapVariable,
+    });
+  };
 
   const handleAddParam = (defaultName) => {
     if (mapParams.some((p) => p.defaultName === defaultName)) return;
@@ -62,16 +85,16 @@ const MapsEditor = () => {
         updatedParams.push(newParam);
       }
     }
-    updateMapConfig(selectedItem.id, updatedParams, selectedVariable);
+
+    updateConfig(updatedParams);
     setParamName("");
   };
 
   const handleRemoveParam = (defaultName) => {
-    updateMapConfig(
-      selectedItem.id,
-      mapParams.filter((p) => p.defaultName !== defaultName),
-      selectedVariable
+    const updatedParams = mapParams.filter(
+      (p) => p.defaultName !== defaultName
     );
+    updateConfig(updatedParams);
   };
 
   const handleEditParam = (defaultName) => {
@@ -81,7 +104,7 @@ const MapsEditor = () => {
       p.defaultName === defaultName ? { ...p, name: paramName } : p
     );
 
-    updateMapConfig(selectedItem.id, updatedParams, selectedVariable);
+    updateConfig(updatedParams);
     setEditingParam(null);
     setParamName("");
   };
@@ -110,11 +133,11 @@ const MapsEditor = () => {
       handleRemoveParam(defaultName);
     }
   };
-  console.log(scope);
+
   const handleVariableSelect = (e) => {
-    const selectedName = e.target.value;
+    const selectedRef = e.target.value;
     const selectedScope = scope.find(
-      (variable) => variable.label === selectedName
+      (variable) => variable.$ref === selectedRef
     );
 
     if (!selectedScope) return;
@@ -125,33 +148,79 @@ const MapsEditor = () => {
       type: "SCOPE_VAR",
     };
 
-    setSelectedVariable(newVariable.name);
-    updateMapConfig(selectedItem.id, mapParams, newVariable);
+    setSelectedVariable(newVariable);
+    updateConfig(mapParams, newVariable);
   };
 
-  if (!selectedItem || selectedItem.elementType !== "MAP") return null;
+  if (!itemDetails?.config || itemDetails?.config.elementType !== "MAP")
+    return null;
 
   return (
     <div className="maps-editor">
       {errorMessage && <p className="text-danger small-font">{errorMessage}</p>}
 
+      {/* Map Variable Selector */}
       <div className="mb-2">
         <strong>Map Variable:</strong>
         <select
-          value={scope.find((variable) => variable.$ref === selectedVariable.$ref)?.label || ""}
+          value={selectedVariable?.$ref || ""}
           onChange={handleVariableSelect}
           className="form-select mt-2"
         >
           <option value="">Select a variable</option>
           {Array.isArray(scope) &&
-            scope.map((variable, index) => (
-              <option key={index} value={variable.$ref}>
+            scope.map((variable) => (
+              <option key={variable.id} value={variable.$ref}>
                 {variable.label}
               </option>
             ))}
         </select>
       </div>
 
+      <div className="mb-3">
+        <label>Is map on object</label>
+        <input
+          className="mx-3"
+          type="checkbox"
+          checked={itemDetails.config.isMapOnObject}
+          onChange={() => {
+            const newIsMapOnObject = !itemDetails.config.isMapOnObject;
+            itemDetails.setConfig({
+              ...itemDetails.config,
+              isMapOnObject: newIsMapOnObject,
+              method: newIsMapOnObject ? selectedMethod : null,
+            });
+            if (!newIsMapOnObject) {
+              setSelectedMethod(null);
+            }
+          }}
+        />
+      </div>
+
+      {/* Method Selector */}
+      {itemDetails.config.isMapOnObject && (
+        <div className="mb-3">
+          {radioMethodOptions.map((option) => (
+            <label key={option.value} className="mx-2">
+              <input
+                type="radio"
+                value={option.value}
+                checked={selectedMethod === option.value}
+                onChange={(e) => {
+                  setSelectedMethod(e.target.value);
+                  itemDetails.setConfig({
+                    ...itemDetails.config,
+                    method: e.target.value,
+                  });
+                }}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      )}
+
+      {/* Parameter Checkboxes */}
       <div className="mb-3">
         <label>
           <input
@@ -178,6 +247,8 @@ const MapsEditor = () => {
           Array
         </label>
       </div>
+
+      {/* Parameter List */}
       {mapParams.map((param) => (
         <div
           key={param.defaultName}

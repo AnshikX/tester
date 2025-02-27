@@ -8,21 +8,33 @@ const ACCEPTS = ["HTML", "TEXT"];
 
 const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
   const randomId = useMemo(() => crypto.randomUUID(), []);
-  const [{ isOver, canDrop }, drop] = useDrop({
-    accept: ACCEPTS,
+  const [{ isOver, canDrop }, drop] = useDrop(
+    {
+      accept: ACCEPTS,
 
-    drop: (item) => {
-      onDrop(item);
-    },
+      drop: ({ item, myOnDrop, getItem }) => {
+        if (myOnDrop) {
+          myOnDrop();
+        }
+        if (getItem) {
+          onDrop(getItem(item));
+        } else if (item) {
+          onDrop(item);
+        } else {
+          console.warn("SOmething went wrong");
+        }
+      },
 
-    canDrop: (item) => {
-      return !heirarchy.includes(item.id);
+      canDrop: ({item}) => {
+        return item?!heirarchy.includes(item.id):true;
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
+      }),
     },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  });
+    [onDrop, heirarchy]
+  );
 
   const dropZoneRef = useRef();
 
@@ -33,7 +45,7 @@ const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
       var isRow = false;
       if (computedStyle.display === "inline") {
         dropZoneRef.current.style.display = "inline";
-        const dropZone = document.getElementById(randomId)
+        const dropZone = document.getElementById(randomId);
         dropZone.style.paddingLeft = "10px";
         dropZone.style.paddingLeft = "10px";
         dropZone.style.display = "inline";

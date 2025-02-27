@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePropContext } from "../../contexts/PropContext";
-import { useSelection } from "../../contexts/SelectionContext";
+import { useSelectedItemDetails,  } from "../../contexts/SelectionContext";
 import PropItem from "./PropItem";
 
 const formatProps = (propsData) => {
@@ -13,19 +13,16 @@ const formatProps = (propsData) => {
 
 const PropsEditor = () => {
   const { props, scope } = usePropContext();
-  const { selectedItem, selectedItemId, selectedContext } = useSelection();
+  const itemDetails  = useSelectedItemDetails();
   const [formattedProps, setFormattedProps] = useState([]);
   const [selectedProps, setSelectedProps] = useState({});
-  const { updateProp } = selectedContext;
-  console.log(selectedItem)
 
-  console.log(selectedContext,"selectedContext")
   useEffect(() => {
     if (props) {
       setFormattedProps(formatProps(props));
     }
-    if (selectedItem?.attributes) {
-      const filteredProps = Object.entries(selectedItem.attributes)
+    if (itemDetails?.config?.attributes) {
+      const filteredProps = Object.entries(itemDetails?.config.attributes)
         .filter(([key]) => key !== "style")
         .reduce((acc, [key, value]) => {
           acc[key] = {
@@ -38,7 +35,7 @@ const PropsEditor = () => {
 
       setSelectedProps(filteredProps);
     }
-  }, [props, selectedItem]);
+  }, [props, itemDetails?.config]);
 
   const handleAddProp = (event) => {
     const propId = event.target.value;
@@ -53,24 +50,55 @@ const PropsEditor = () => {
   };
 
   const handleChange = (id, newValue) => {
-    const prop = selectedProps[id];
-    updateProp(selectedItemId, id, newValue, prop.scope);
-  };
-
-  const handleScopeChange = (id, selectedScope) => {
-    console.log(selectedScope,"selectedScope")
-    updateProp(selectedItemId, id, "", selectedScope);
+    if (!itemDetails?.config) return;
+  
+    const updatedAttributes = {
+      ...itemDetails.config.attributes,
+      [id]: {
+        type: selectedProps[id].scope || "STRING",
+        value: newValue,
+      },
+    };
+  
+    itemDetails.setConfig({
+      ...itemDetails.config,
+      attributes: updatedAttributes,
+    });
   };
   
-
+  const handleScopeChange = (id, selectedScope) => {
+    if (!itemDetails?.config) return;
+  
+    const updatedAttributes = {
+      ...itemDetails.config.attributes,
+      [id]: {
+        type: selectedScope,
+        value: "",
+      },
+    };
+  
+    itemDetails.setConfig({
+      ...itemDetails.config,
+      attributes: updatedAttributes,
+    });
+  };
+  
   const handleRemove = (id) => {
-    updateProp(selectedItemId, id, null, null);
+    if (!itemDetails?.config) return;
+  
+    const updatedAttributes = { ...itemDetails.config.attributes };
+    delete updatedAttributes[id];
+  
+    itemDetails.setConfig({
+      ...itemDetails.config,
+      attributes: updatedAttributes,
+    });
+  
     setSelectedProps((prevProps) => {
       const updatedProps = { ...prevProps };
       delete updatedProps[id];
       return updatedProps;
     });
-  
   };
 
   const scopeOptions = [

@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import SideBarItem from "./sidebars/SideBarItem";
 import Renderer from "./Renderer";
 import "../styles/styles.css";
-import { useConfig } from "./contexts/ConfigContext";
-import { useSelection } from "./contexts/SelectionContext";
+import { useSelectedItemId,  useSetters } from "./contexts/SelectionContext";
 import RightSidebar from "./sidebars/RightSidebar";
 import { usePropContext } from "./contexts/PropContext";
 
 const Container = () => {
-  const { config, setConfig } = useConfig({});
+  const [ config, setConfig ] = useState({});
   const [sidebarItems, setSidebarItems] = useState([]);
-  const { selectedItemId, setSelectedItem } = useSelection();
+  const { setSelectedItemId } = useSetters();
+  const selectedItemId = useSelectedItemId();
   const [isPreview, setIsPreview] = useState(false);
   const { setScope, setProps } = usePropContext();
-
+  console.log("COntainer")
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
@@ -28,7 +28,6 @@ const Container = () => {
             setSidebarItems(resource.sideBarItems);
           }
           if (resource.type === "scope") {
-            console.log(resource.scope);
             setScope(resource.scope);
           }
           if (resource.type === "props") {
@@ -63,7 +62,6 @@ const Container = () => {
       window.removeEventListener("message", handleMessage);
     };
   }, [setConfig, setSidebarItems, setScope, setProps]);
-
   useEffect(() => {
     window.parent.postMessage(
       {
@@ -74,11 +72,10 @@ const Container = () => {
       "*"
     );
   }, [config]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
-        setSelectedItem(null);
+        setSelectedItemId(null);
         
       }
     };
@@ -86,7 +83,9 @@ const Container = () => {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [setSelectedItem]);
+  }, [setSelectedItemId]);
+  console.log(sidebarItems)
+
   return (
     <div className="body">
       <div className={`sideBar ${isPreview ? "hidden" : "visible width-15"}`}>
@@ -111,6 +110,7 @@ const Container = () => {
               item={config}
               heirarchy={[config.id]}
               isPreview={isPreview}
+              updateItem={setConfig}
             />
           ) : (
             <p>Loading...</p>

@@ -7,9 +7,9 @@ const TextRenderer = ({
   updateItem,
   handleMouseOver,
   handleMouseOut,
-  commonStyle,
+  opacity,
   drag,
-  isPreview
+  isPreview,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -51,7 +51,7 @@ const TextRenderer = ({
   ) : (
     <span
       id={item.id}
-      style={commonStyle}
+      style={{ opacity }}
       onClick={handleSelect}
       onDoubleClick={handleDoubleClick}
       onMouseOver={handleMouseOver}
@@ -72,9 +72,9 @@ TextRenderer.propTypes = {
   updateItem: PropTypes.func.isRequired,
   handleMouseOver: PropTypes.func.isRequired,
   handleMouseOut: PropTypes.func.isRequired,
-  commonStyle: PropTypes.object.isRequired,
+  opacity: PropTypes.number.isRequired,
   drag: PropTypes.func.isRequired,
-  isPreview: PropTypes.bool.isRequired
+  isPreview: PropTypes.bool.isRequired,
 };
 
 export default TextRenderer;

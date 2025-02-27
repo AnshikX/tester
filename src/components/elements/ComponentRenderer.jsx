@@ -9,7 +9,7 @@ const ComponentRenderer = ({
   handleSelect,
   handleMouseOver,
   handleMouseOut,
-  commonStyle,
+  opacity,
   heirarchy,
   addChild,
   updateChild,
@@ -19,7 +19,7 @@ const ComponentRenderer = ({
   return (
     <div
       id={item.id}
-      style={commonStyle}
+      style={{ opacity }}
       onClick={handleSelect}
       onMouseOver={handleMouseOver}
       onMouseOut={handleMouseOut}
@@ -49,8 +49,8 @@ const ComponentRenderer = ({
                 />
               );
             })}
-            {!isPreview && (
-              item.children.length === 0 ? (
+            {!isPreview &&
+              (item.children.length === 0 ? (
                 <DropZone
                   onDrop={(addedItem) =>
                     addChild(addedItem, 0, item.children.length)
@@ -73,8 +73,7 @@ const ComponentRenderer = ({
                     item.children[item.children.length - 1].id,
                   ]}
                 />
-              )
-            )}
+              ))}
           </>
         ) : null
       )}
@@ -92,12 +91,12 @@ ComponentRenderer.propTypes = {
   handleSelect: PropTypes.func.isRequired,
   handleMouseOver: PropTypes.func.isRequired,
   handleMouseOut: PropTypes.func.isRequired,
-  commonStyle: PropTypes.object.isRequired,
+  opacity: PropTypes.number.isRequired,
   heirarchy: PropTypes.array.isRequired,
   addChild: PropTypes.func.isRequired,
   updateChild: PropTypes.func.isRequired,
   drag: PropTypes.func.isRequired,
-  isPreview: PropTypes.bool.isRequired
+  isPreview: PropTypes.bool.isRequired,
 };
 
 export default ComponentRenderer;

@@ -1,22 +1,20 @@
-import { useSelection } from "../../contexts/SelectionContext";
 import PropTypes from "prop-types";
 import LayersEditor from "./LayersEditor";
+import { useMap } from "../../contexts/MapContext";
+import { useEffect, useState } from "react";
 
 const MapLayers = ({ node, handleSelect }) => {
-  const { contexts, setSelectedItem, setSelectedContext } = useSelection();
+  const [childNode, setChildNode] = useState(null);
 
-  const nodeContext = contexts[node.id] || {};
-  const handleMapSelect = (node) => {
-    setSelectedContext(nodeContext)
-    setSelectedItem(node); 
-    handleSelect(node);
-  };
-  return (
-    <LayersEditor
-      node={{ ...node, ...nodeContext.config }}
-      handleSelect={handleMapSelect}
-    />
-  );
+  const { getReturnLayer } = useMap();
+
+  useEffect(() => {
+    setChildNode(getReturnLayer(node.id));
+  }, [node.id, getReturnLayer]);
+
+  if (!childNode) return null;
+
+  return <LayersEditor node={childNode} handleSelect={handleSelect} />;
 };
 
 MapLayers.propTypes = {

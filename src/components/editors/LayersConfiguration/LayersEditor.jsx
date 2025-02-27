@@ -1,26 +1,29 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { useSelection } from "../../contexts/SelectionContext";
+import { useSelectedItemDetails, useSelectedItemId,  useSetters } from "../../contexts/SelectionContext";
 import { useVisibility } from "../../contexts/VisibilityContext";
 import downArrow from "../../assets/svgs/down-arrow.svg";
 import upArrow from "../../assets/svgs/up-arrow.svg";
 import eyeOpen from "../../assets/svgs/eye-open.svg";
 import eyeClosed from "../../assets/svgs/eye-close.svg";
-import { useConfig } from "../../contexts/ConfigContext";
 import MapsLayers from "./MapLayers";
 
 const LayersEditor = ({ node, level = 0, handleSelect }) => {
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const { selectedItemId } = useSelection();
+  const { setSelectedItemId } = useSetters();
+  // const { selectedItemId,itemDetails, setSelectedItemId } = useSelection();
+
+  const itemDetails = useSelectedItemDetails()
+  const selectedItemId = useSelectedItemId()
+  
   const { visibilityState, toggleVisibility, setHoveredItem } = useVisibility();
-  const { updateItem } = useConfig();
   const isVisible = visibilityState[node.id] !== false;
 
   const handleVisibilityToggle = (e) => {
     e.stopPropagation();
     toggleVisibility(node.id);
-    handleSelect(node);
+    handleSelect(node); 
   };
 
   const handleSelectItem = () => {
@@ -37,12 +40,13 @@ const LayersEditor = ({ node, level = 0, handleSelect }) => {
 
   const handleInputChange = (e) => {
     const newValue = e.target.value;
-    updateItem({ ...node, label: newValue });
+    itemDetails?.setConfig({ ...node, label: newValue });
   };
 
   const handleDoubleClick = (e) => {
     e.stopPropagation();
     setIsEditing(true);
+    setSelectedItemId(node.id);
   };
   
   return (
@@ -66,7 +70,7 @@ const LayersEditor = ({ node, level = 0, handleSelect }) => {
             alt="visibility"
             onClick={handleVisibilityToggle}
           />
-          {isEditing ? (
+          {isEditing && node.id === selectedItemId ? (
             <input
               type="text"
               defaultValue={node.label? node.label : node.elementType}

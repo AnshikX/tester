@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
 import DropZone from "./DropZone";
 import PropTypes from "prop-types";
-import { ConfigProvider, useConfig } from "./contexts/ConfigContext";
-import { useSelection } from "./contexts/SelectionContext";
+import { useSelectedItemId,  useSetters } from "./contexts/SelectionContext";
 import OverlayBar from "./OverlayBar";
 import TextRenderer from "./elements/TextRenderer";
 import HTMLRenderer from "./elements/HTMLRenderer";
@@ -18,21 +17,29 @@ const Renderer = ({
   prevId = null,
   isFirst = true,
   isPreview,
+  updateItem,
+  handleDelete,
 }) => {
-  const context = useConfig();
-  const { removeChildById, updateItem, addItemToId } = context;
   const { visibilityState, hoveredItemId } = useVisibility();
-  const { selectedItemId, setSelectedItem , setSelectedContext} = useSelection();
+  const {  setSelectedItemId } = useSetters();
+
+  const selectedItemId = useSelectedItemId()
+
   const [isHovered, setIsHovered] = useState(false);
   const firstDropZoneHeriarchy = [...heirarchy];
   const isSelected = selectedItemId === item.id;
-  const [{ isDragging }, drag] = useDrag({
-    type: "HTML",
-    item: { ...item },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
+  const [{ isDragging }, drag] = useDrag(
+    {
+      type: "HTML",
+      item: { item: { ...item }, myOnDrop: handleDelete },
+      canDrag: () => handleDelete?true:false,
+
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    },
+    [item, handleDelete]
+  );
 
   const opacity = isDragging ? 0.5 : 1;
   const isVisible = visibilityState[item.id] !== false;
@@ -44,24 +51,6 @@ const Renderer = ({
       setIsHovered(false);
     }
   }, [hoveredItemId, item.id]);
-
-  const addChild = useCallback(
-    (newChild, offset, index) => {
-      const newItem = JSON.parse(JSON.stringify(newChild));
-      addItemToId(newItem, item.id, offset + index);
-    },
-    [addItemToId, item.id]
-  );
-
-  const updateChild = useCallback(
-    (child, index) => {
-      const updatedChildren = [...item.children];
-      updatedChildren[index] = child;
-      item.children = updatedChildren;
-      updateItem({ ...item });
-    },
-    [item, updateItem]
-  );
 
   const handleDrop = useCallback(
     (draggedItem, offset = 0) => {
@@ -78,44 +67,15 @@ const Renderer = ({
     (e) => {
       e.stopPropagation();
       if (selectedItemId !== item.id) {
-        setSelectedItem(item);
-        setSelectedContext(context);
+        setSelectedItemId(item.id);
       }
       setIsHovered(false);
 
     },
 
-    [selectedItemId, setSelectedItem, item, context, setSelectedContext]
+    [selectedItemId, item.id, setSelectedItemId, setIsHovered]
   );
-
-  useEffect(()=>{
-    if(selectedItemId === item.id){
-      setSelectedItem(item)
-      setSelectedContext(context)
-    }
-  },[selectedItemId,setSelectedItem,setSelectedContext,item,context])
-
-
-  const handleDelete = useCallback(
-    (e) => {
-      e.stopPropagation();
-      removeChildById(item.id);
-    },
-    [removeChildById, item.id]
-  );
-
-  const commonStyle = useMemo(() => {
-    return {
-      // border: "2px dashed #ccc",
-      // opacity,
-      // padding: "10px",
-      // position: "relative",
-      // margin: "5px 0",
-      // cursor: "pointer",
-      // // display: "block",
-    };
-  }, [opacity]);
-
+  
   const handleMouseOver = useCallback(
     (e) => {
       e.stopPropagation();
@@ -153,9 +113,10 @@ const Renderer = ({
           item={item}
           handleSelect={handleSelect}
           handleMouseOver={handleMouseOver}
+          opacity={opacity}
           handleMouseOut={handleMouseOut}
+          key={item.id}
           updateItem={updateItem}
-          commonStyle={commonStyle}
           drag={drag}
           isPreview={isPreview}
         />
@@ -165,12 +126,12 @@ const Renderer = ({
         <HTMLRenderer
           item={item}
           handleSelect={handleSelect}
+          key={item.id}
           handleMouseOver={handleMouseOver}
           handleMouseOut={handleMouseOut}
-          commonStyle={commonStyle}
           heirarchy={heirarchy}
-          addChild={addChild}
-          updateChild={updateChild}
+          updateItem={updateItem}
+          opacity={opacity}
           drag={drag}
           isPreview={isPreview}
         />
@@ -179,32 +140,29 @@ const Renderer = ({
           item={item}
           handleSelect={handleSelect}
           handleMouseOver={handleMouseOver}
+          opacity={opacity}
           handleMouseOut={handleMouseOut}
-          commonStyle={commonStyle}
           heirarchy={heirarchy}
-          addChild={addChild}
-          updateChild={updateChild}
+          updateItem={updateItem}
           drag={drag}
           isPreview={isPreview}
         />
       ) : item.elementType === "MAP" ? (
-        <ConfigProvider>
-          <MapRenderer
-            item={item}
-            handleSelect={handleSelect}
-            handleMouseOver={handleMouseOver}
-            handleMouseOut={handleMouseOut}
-            heirarchy={heirarchy}
+        <MapRenderer
+          item={item}
+          handleSelect={handleSelect}
+          drag={drag}
+          opacity={opacity}
+          handleMouseOver={handleMouseOver}
+          handleMouseOut={handleMouseOut}
+          heirarchy={heirarchy}
           updateItem={updateItem}
-            commonStyle={commonStyle}
-            isPreview={isPreview}
-          />
-        </ConfigProvider>
+          isPreview={isPreview}
+        />
       ) : (
         <div
           className="component unknown"
           ref={(node) => drag(node)}
-          style={commonStyle}
           onClick={handleSelect}
           onMouseOver={handleMouseOver}
           onMouseOut={handleMouseOut}
@@ -249,6 +207,8 @@ Renderer.propTypes = {
   prevId: PropTypes.string,
   isFirst: PropTypes.bool,
   isPreview: PropTypes.bool.isRequired,
+  updateItem: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func,
 };
 
 export default Renderer;

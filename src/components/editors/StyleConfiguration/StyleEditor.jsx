@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { STYLECATEGORIES } from "../../constants/StyleCategoriesConstants";
-import { useConfig } from "../../contexts/ConfigContext";
-import { useSelection } from "../../contexts/SelectionContext";
+import { useSelectedItemDetails,  } from "../../contexts/SelectionContext";
 
 const debounce = (func, delay) => {
   let timeout;
@@ -12,21 +11,21 @@ const debounce = (func, delay) => {
 };
 
 const StyleEditor = () => {
-  const { selectedItem, selectedItemId, localStyles, setLocalStyles, selectedContext } = useSelection();
+  const itemDetails  = useSelectedItemDetails();
   const [expandedCategory, setExpandedCategory] = useState(null);
-  const {updateStyles} = selectedContext
-
+  const [localStyles, setLocalStyles] = useState({});
   const stylesRef = useRef(localStyles);
+  console.log(itemDetails)
   useEffect(() => {
-    if (selectedItem?.attributes?.style) {
+    if (itemDetails?.config?.attributes?.style) {
       setLocalStyles({
         type: "OBJECT",
-        properties: { ...selectedItem.attributes.style.properties },
+        properties: { ...itemDetails?.config.attributes.style.properties },
       });
     } else {
       setLocalStyles({ type: "OBJECT", properties: {} });
     }
-  }, [selectedItemId, selectedItem, setLocalStyles]);
+  }, [itemDetails]);
 
   const handleStyleChange = (property, value) => {
     const newValue =
@@ -47,15 +46,16 @@ const StyleEditor = () => {
     setLocalStyles(stylesRef.current);
 
     const updateConfigDebounce = debounce(() => {
-      if (selectedItem) {
-        updateStyles({
-          ...selectedItem,
+      if (itemDetails?.config) {
+        console.log('insideee')
+        itemDetails.setConfig({
+          ...itemDetails?.config,
           attributes: {
-            ...selectedItem.attributes,
+            ...itemDetails?.config.attributes,
             style: {
               type: "OBJECT",
               properties: {
-                ...selectedItem.attributes?.style?.properties,
+                ...itemDetails?.config.attributes?.style?.properties,
                 ...stylesRef.current.properties,
               },
             },
@@ -74,11 +74,11 @@ const StyleEditor = () => {
     setLocalStyles(updatedStyles);
     stylesRef.current = updatedStyles;
 
-    if (selectedItem) {
-      updateStyles({
-        ...selectedItem,
+    if (itemDetails?.config) {
+      itemDetails?.setConfig({
+        ...itemDetails?.config,
         attributes: {
-          ...selectedItem.attributes,
+          ...itemDetails?.config.attributes,
           style: {
             type: "OBJECT",
             properties: {

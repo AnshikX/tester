@@ -4,7 +4,7 @@ import LayersEditor from "../editors/LayersConfiguration/LayersEditor";
 import stackIcon from "../assets/svgs/stack.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
 import upArrow from "../assets/svgs/up-arrow.svg";
-import { useSelection } from "../contexts/SelectionContext";
+import { useSelectedItemDetails, useSelectedItemId,  useSetters } from "../contexts/SelectionContext";
 import StyleEditor from "../editors/StyleConfiguration/StyleEditor";
 import PropsEditor from "../editors/PropsConfiguration/PropsEditor";
 import MapsEditor from "../editors/MapsConfiguration/MapsEditor";
@@ -14,11 +14,15 @@ const RightSidebar = ({ config }) => {
   const [stylesExpanded, setStylesExpanded] = useState(false);
   const [propsExpanded, setPropsExpanded] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
-  const { selectedItemId, setSelectedItem, selectedItem, setSelectedContext } = useSelection();
+  // const { selectedItemId, setSelectedItemId, itemDetails } = useSelection();
+
+  const itemDetails = useSelectedItemDetails()
+  const selectedItemId = useSelectedItemId()
+
+  const { setSelectedItemId } = useSetters();
 
   const handleTileSelect = (node) => {
-    setSelectedItem(node);
-    setSelectedContext(config)
+    setSelectedItemId(node.id);
   };
 
   if (selectedItemId === null) {
@@ -36,8 +40,8 @@ const RightSidebar = ({ config }) => {
     );
   }
 
-  const isTextElement = selectedItem?.elementType === "Text" || selectedItem?.elementType === "TEXT";
-  const isMapElement = selectedItem?.elementType === "Map" || selectedItem?.elementType === "MAP";
+  const isTextElement = itemDetails?.config?.elementType === "Text" || itemDetails?.config?.elementType === "TEXT";
+  const isMapElement = itemDetails?.config?.elementType === "Map" || itemDetails?.config?.elementType === "MAP";
 
   return (
     <>

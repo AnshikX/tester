@@ -1,20 +1,33 @@
 import { useDrag } from "react-dnd";
-import PropTypes from "prop-types"; 
+import PropTypes from "prop-types";
+import { useCallback } from "react";
 
 const SideBarItem = ({ data }) => {
-  const [{ opacity }, drag] = useDrag({
-    type: "HTML",
-    item: { ...data, type: "Element" },
-    collect: (monitor) => ({
-      opacity: monitor.isDragging() ? 0.4 : 1,
-    }),
-  });
-
+  const getItem = useCallback(() => {
+    const newItem = JSON.parse(JSON.stringify(data));
+    newItem.id = crypto.randomUUID();
+    if (newItem.elementType === "MAP") {
+      newItem.bodyConfig.statements[0].value.id = crypto.randomUUID();
+    }
+    return newItem;
+  }, [data]);
+  
+  const [{ opacity }, drag] = useDrag(
+    {
+      type: "HTML",
+      item: { getItem },
+      collect: (monitor) => ({
+        opacity: monitor.isDragging() ? 0.4 : 1,
+      }),
+    },
+    [data]
+  );
   return (
     <div className="sideBarItem" ref={drag} style={{ opacity }}>
       {data.label}
     </div>
   );
+
 };
 
 SideBarItem.propTypes = {

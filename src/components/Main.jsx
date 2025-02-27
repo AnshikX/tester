@@ -3,35 +3,34 @@ import { useState } from "react";
 const Main = ({ prop1 }) => {
   const [state, setState] = useState();
   const mapVar = [1, 2, 3, 4, 5];
-  return (
-    <div style={{ backgroundColor: "#f5f5f5", color: "#540808" }}>
-      Hello world
-      <div className={"row"}>
-        <div className={"col"}>Hello World</div>
-        <div className={"col"}>Hello World</div>
+  const obj = { username: "user", password: "password" };
+  if (false) {
+    return (
+      <div style={{ backgroundColor: "#e1c7c7" }}>
+        <div className={"row"}>
+          <div className={"col"}>Hello World</div>
+        </div>
+        {obj.map((item, index) => {
+          return <div onBlur={"1"} />;
+        })}
       </div>
-      {mapVar.map((item) => {
-        if (item % 2 === 0) {
-          return (
-            <div style={{ backgroundColor: "#be7474", color: "#ff0000" }}>
-              Anushkaa
-            </div>
-          );
-        } else {
-          return <div>Coding</div>;
-        }
-      })}
-      {Main.map((item) => {
-        return (
-          <div
-            style={{ backgroundColor: "#ddc0c0", color: "#ff0000" }}
-            className={"d-flex"}
-          >
-            <div className={"col"} />
-            <div className={"col"}>Hello World</div>Bye
-          </div>
-        );
-      })}
+    );
+  }
+  return (
+    <div style={{ backgroundColor: "#ffffff", color: "#540808" }}>
+      <div className={"row"}>
+        {mapVar.map((item, index) => {
+          if (item % 2 === 0) {
+            return (
+              <div style={{ backgroundColor: "#ffffff", color: "#000000" }}>
+                Bye worldHello World
+              </div>
+            );
+          } else {
+            return <div>Coding</div>;
+          }
+        })}
+      </div>
     </div>
   );
 };

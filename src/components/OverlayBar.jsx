@@ -6,10 +6,8 @@ import deleteButton from "./assets/svgs/delete-button.svg";
 const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFirst }) => {
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
-  // console.log(element)
   const getPosition = useCallback(() => {
     const element = document.getElementById(itemId);
-
     if (!element) return { top: 0, left: 0, width: 0, height: 0 };
     const rect = element.getBoundingClientRect();
     return {
@@ -19,90 +17,82 @@ const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFi
       height: rect.height,
     };
   }, [itemId]);
+
   useEffect(() => {
     let animationFrameId;
-    let isAnimating = false;
-  
+
     const updatePosition = () => {
       setPos((prevPos) => {
         const newPos = getPosition();
+
+        // Keep updating until the final position is stable
         if (
           prevPos.top !== newPos.top ||
           prevPos.left !== newPos.left ||
           prevPos.width !== newPos.width ||
           prevPos.height !== newPos.height
         ) {
+          animationFrameId = requestAnimationFrame(updatePosition);
           return newPos;
         }
         return prevPos;
       });
-  
-      // Only continue the loop if an animation is happening
-      if (isAnimating) {
-        animationFrameId = requestAnimationFrame(updatePosition);
-      }
     };
-  
+
+    updatePosition(); // Initial update
+
     const element = document.getElementById(itemId);
     if (!element) {
       const observer = new MutationObserver(() => {
         const element = document.getElementById(itemId);
         if (element) {
-          observer.disconnect();
           updatePosition();
         }
       });
       observer.observe(document.body, { childList: true, subtree: true });
       return () => observer.disconnect();
     }
-  
-    updatePosition(); // Initial update
-  
-    // Mutation Observer for content changes
+
+    // Observe any mutations in the item's subtree
     const mutationObserver = new MutationObserver(updatePosition);
-    mutationObserver.observe(element, { characterData: true, subtree: true, childList: true });
-  
-    // Resize Observer
+    mutationObserver.observe(element, { attributes: true, characterData: true, subtree: true, childList: true });
+
+    // Observe resizing
     const resizeObserver = new ResizeObserver(updatePosition);
     resizeObserver.observe(element);
-  
-    // Intersection Observer
+
+    // Observe visibility changes
     const intersectionObserver = new IntersectionObserver(updatePosition);
     intersectionObserver.observe(element);
-  
-    // Start listening for global animations
-    const handleAnimationStart = () => {
-      isAnimating = true;
+
+    // Update on animations
+    const handleAnimation = () => {
       updatePosition();
       animationFrameId = requestAnimationFrame(updatePosition);
     };
-  
-    const handleAnimationEnd = () => {
-      isAnimating = false;
-      cancelAnimationFrame(animationFrameId);
-    };
-  
-    document.body.addEventListener("animationstart", handleAnimationStart);
-    document.body.addEventListener("animationiteration", handleAnimationStart);
-    document.body.addEventListener("animationend", handleAnimationEnd);
-    document.body.addEventListener("transitionend", handleAnimationEnd);
-  
+
+    document.body.addEventListener("animationstart", handleAnimation);
+    document.body.addEventListener("animationiteration", handleAnimation);
+    document.body.addEventListener("animationend", handleAnimation);
+    document.body.addEventListener("transitionend", handleAnimation);
+
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
-  
+
     return () => {
       mutationObserver.disconnect();
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      document.body.removeEventListener("animationstart", handleAnimationStart);
-      document.body.removeEventListener("animationiteration", handleAnimationStart);
-      document.body.removeEventListener("animationend", handleAnimationEnd);
-      document.body.removeEventListener("transitionend", handleAnimationEnd);
+      document.body.removeEventListener("animationstart", handleAnimation);
+      document.body.removeEventListener("animationiteration", handleAnimation);
+      document.body.removeEventListener("animationend", handleAnimation);
+      document.body.removeEventListener("transitionend", handleAnimation);
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [getPosition, itemId, isVisible, itemLabel]);
+  }, [getPosition, itemId, isVisible]);
+
   const overlayStyle = {
     position: "fixed",
     top: `${pos.top}px`,
@@ -161,7 +151,7 @@ const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFi
 OverlayBar.propTypes = {
   itemId: PropTypes.string.isRequired,
   itemLabel: PropTypes.string,
-  onDelete: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
   isVisible: PropTypes.bool.isRequired,
   setIsHovered: PropTypes.func.isRequired,
   isFirst: PropTypes.bool.isRequired,
