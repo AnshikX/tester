@@ -52,18 +52,20 @@ const CombinedRenderer = ({
     queue: [],
     triggered: false,
   });
-  const debouncedUpdate = useRef(debounce((itemConfig) => {
-    updateItemRef.current(itemConfig);
-  }, 250));
-  
+  const debouncedUpdate = useRef(
+    debounce((itemConfig) => {
+      updateItemRef.current(itemConfig);
+    }, 250)
+  );
+
   useEffect(() => {
     if (selectedItemId !== config.id) return;
-  
+
     const handleMessageEvent = (event) => {
       if (event.data?.source === "BREEZE" && event.data.type === "resource") {
         const { resource } = event.data;
         if (resource.type === "updateItem") {
-          console.log(resource)
+          console.log(resource);
           setCurrentItem((item) => {
             resource.itemConfig.children = item?.children;
             debouncedUpdate.current(resource.itemConfig);
@@ -72,11 +74,10 @@ const CombinedRenderer = ({
         }
       }
     };
-  
+
     window.addEventListener("message", handleMessageEvent);
     return () => window.removeEventListener("message", handleMessageEvent);
   }, [selectedItemId, config.id]);
-  
 
   const updateItemRef = useRef(updateItem);
   useEffect(() => {
@@ -237,7 +238,8 @@ const CombinedRenderer = ({
           />
         );
       })}
-      {!isPreview && currentItem.children&&
+      {!isPreview &&
+        currentItem.children &&
         (currentItem.children?.length === 0 ? (
           <DropZone
             key={`${currentItem.id}-drop`}

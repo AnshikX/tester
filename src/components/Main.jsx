@@ -20,7 +20,7 @@ const Main = ({ prop1 }) => {
   }
   return (
     <div
-      className={"d-flex"}
+      className={"container-fluid"}
       style={{ backgroundColor: "#ffffff", color: "#540808" }}
     >
       <div className={"row"}>
