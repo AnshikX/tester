@@ -118,11 +118,11 @@ const Container = () => {
         </div>
       </div>
 
-      <div
+      {/* <div
         className={`rightSidebar ${isPreview ? "hidden" : "visible width-25"}`}
       >
         <RightSidebar config={config} selectedItemId={selectedItemId} />
-      </div>
+      </div> */}
     </div>
   );
 };

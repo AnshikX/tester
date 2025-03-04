@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 const VisibilityContext = createContext();
@@ -25,12 +25,38 @@ export const VisibilityProvider = ({ children }) => {
     }));
   };
 
-  const setHoveredItem = (id) => {
-    setHoveredItemId(id);
-  };
+  useEffect(() => {
+    const handleMessage = (event) => {
 
+      if (event.data?.source === "LayersEditor") {
+        const { action, nodeId } = event.data;
+    
+        if (action === "toggleVisibility") {
+          toggleVisibility(nodeId);
+        } else if (action === "setHoveredItemId") {
+          setHoveredItemId(nodeId);
+        }
+      }
+    };
+    
+    window.addEventListener("message", handleMessage);
+  
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+  
+  useEffect(() => {
+    window.parent.postMessage(
+      {
+        source: "VisibilityProvider",
+        type: "visibilityState",
+        data: visibilityState,
+      },
+      "*"
+    );
+  }, [visibilityState]);
+  
   return (
-    <VisibilityContext.Provider value={{ visibilityState, toggleVisibility, setVisibility, hoveredItemId, setHoveredItem }}>
+    <VisibilityContext.Provider value={{ visibilityState, toggleVisibility, setVisibility, hoveredItemId }}>
       {children}
     </VisibilityContext.Provider>
   );

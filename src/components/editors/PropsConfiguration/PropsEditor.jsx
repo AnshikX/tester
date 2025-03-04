@@ -134,7 +134,6 @@ const PropsEditor = () => {
             <select
               value={prop.scope || ""}
               onChange={(e) => handleScopeChange(key, e.target.value)}
-              className="scope-select"
             >
               <option value="">Select scope</option>
               {scopeOptions.map((scope) => (

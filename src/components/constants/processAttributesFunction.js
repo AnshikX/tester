@@ -1,5 +1,4 @@
 export const getValue = (conf) => {
-  console.log(conf,"HAHA")
   if (conf.type === "OBJECT") {
     const obj = {};
     Object.entries(conf.properties).forEach(([key, value]) => {
@@ -9,7 +8,7 @@ export const getValue = (conf) => {
   } else if (conf.type === "ARRAY") {
     return conf.values.map((val) => getValue(val));
   } else if (conf.type === "STRING") {
-    return conf.value || "";
+    return conf.value?.trim() ?? "";
   } else if (conf.type === "NUMBER") {
     return Number(conf.value);
   } else if (conf.type === "UNDEFINED") {

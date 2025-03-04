@@ -1,30 +1,30 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import Aaaa from "/src/components/Aaaa.jsx";
+import Testing from "/src/components/Testing.jsx";
 const Main = ({ prop1 }) => {
   const [state, setState] = useState();
   const mapVar = [1, 2, 3, 4, 5];
   const obj = { username: "user", password: "password" };
   if (false) {
     return (
-      <div style={{ backgroundColor: "#ffffff" }}>
+      <div>
         <div className={"row"}>
           <div className={"col"}>Hello World</div>
         </div>
-        {obj.map((item, index) => {
-          return (
-            <div onBlur={"1"}>
-              <Aaaa className={"bg-dark"} />
-            </div>
-          );
+        <Testing prop1={undefined} />
+        {mapVar.map((item, index) => {
+          return <div />;
         })}
       </div>
     );
   }
   return (
-    <div style={{ backgroundColor: "#ffffff", color: "#540808" }}>
+    <div
+      className={"d-flex"}
+      style={{ backgroundColor: "#ffffff", color: "#540808" }}
+    >
       <div className={"row"}>
-        {mapVar.map((item, index) => {
+        {Object.entries(mapVar).map((item, index, array) => {
           if (item % 2 === 0) {
             return (
               <div style={{ backgroundColor: "#ffffff", color: "#000000" }}>

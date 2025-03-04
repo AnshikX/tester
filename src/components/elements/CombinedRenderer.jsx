@@ -12,6 +12,13 @@ import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { getValue } from "../constants/processAttributesFunction";
 import SwitchRenderer from "../SwitchRenderer";
 
+const debounce = (func, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
 const CombinedRenderer = ({
   item: config,
   handleSelect,
@@ -27,17 +34,16 @@ const CombinedRenderer = ({
   const selectedItemId = useSelectedItemId();
   const [localStyles, setLocalStyles] = useState({});
   const [currentItem, setCurrentItem] = useState(config);
-
   useEffect(() => {
     if (selectedItemId === currentItem.id) {
       setItemDetails({
         config: currentItem,
-        setConfig: (item) => {
-          updateItem(item);
-          setCurrentItem(item);
-        },
-        localStyles: localStyles,
-        setLocalStyles: setLocalStyles,
+        // setConfig: (item) => {
+        //   updateItem(item);
+        //   setCurrentItem(item);
+        // },
+        // localStyles: localStyles,
+        // setLocalStyles: setLocalStyles,
       });
     }
   }, [selectedItemId, currentItem, setItemDetails, localStyles, updateItem]);
@@ -46,6 +52,31 @@ const CombinedRenderer = ({
     queue: [],
     triggered: false,
   });
+  const debouncedUpdate = useRef(debounce((itemConfig) => {
+    updateItemRef.current(itemConfig);
+  }, 250));
+  
+  useEffect(() => {
+    if (selectedItemId !== config.id) return;
+  
+    const handleMessageEvent = (event) => {
+      if (event.data?.source === "BREEZE" && event.data.type === "resource") {
+        const { resource } = event.data;
+        if (resource.type === "updateItem") {
+          console.log(resource)
+          setCurrentItem((item) => {
+            resource.itemConfig.children = item?.children;
+            debouncedUpdate.current(resource.itemConfig);
+            return resource.itemConfig;
+          });
+        }
+      }
+    };
+  
+    window.addEventListener("message", handleMessageEvent);
+    return () => window.removeEventListener("message", handleMessageEvent);
+  }, [selectedItemId, config.id]);
+  
 
   const updateItemRef = useRef(updateItem);
   useEffect(() => {
@@ -155,7 +186,6 @@ const CombinedRenderer = ({
           }
           acc[key] = computedStyles;
         } else {
-          console.log(key,value,currentItem.attributes)
           acc[key] = getValue(value);
         }
         return acc;
@@ -189,8 +219,9 @@ const CombinedRenderer = ({
       handleMouseOut={handleMouseOut}
       drag={drag}
       opacity={opacity}
+      processedAttributes={processedAttributes}
     >
-      {currentItem.children.map((child, index) => {
+      {currentItem.children?.map((child, index) => {
         const prevId = index > 0 ? currentItem.children[index - 1].id : null;
         return (
           <Renderer
@@ -206,11 +237,13 @@ const CombinedRenderer = ({
           />
         );
       })}
-      {!isPreview &&
-        (currentItem.children.length === 0 ? (
+      {!isPreview && currentItem.children&&
+        (currentItem.children?.length === 0 ? (
           <DropZone
             key={`${currentItem.id}-drop`}
-            onDrop={(addedItem) => addChild(addedItem, 0, currentItem.children.length)}
+            onDrop={(addedItem) =>
+              addChild(addedItem, 0, currentItem.children.length)
+            }
             position="bottom"
             isOnly={true}
             heirarchy={[...stableHeirarchy, currentItem.id]}
@@ -220,9 +253,15 @@ const CombinedRenderer = ({
         ) : (
           <DropZone
             key={`${currentItem.id}-drop-bottom`}
-            onDrop={(addedItem) => addChild(addedItem, 0, currentItem.children.length)}
+            onDrop={(addedItem) =>
+              addChild(addedItem, 0, currentItem.children.length)
+            }
             position="bottom"
-            heirarchy={[...stableHeirarchy, currentItem.id, currentItem.children[currentItem.children.length - 1].id]}
+            heirarchy={[
+              ...stableHeirarchy,
+              currentItem.id,
+              currentItem.children[currentItem.children.length - 1].id,
+            ]}
           />
         ))}
     </SwitchRenderer>

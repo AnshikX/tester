@@ -1,6 +1,5 @@
 import React, {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -21,19 +20,41 @@ const RenderChildren = React.memo(
   }
 );
 
-RenderChildren.displayName = "REnder";
+RenderChildren.displayName = "Render";
+
+RenderChildren.propTypes = {
+  child: PropTypes.node,
+};
 
 export const SelectionProvider = ({ children }) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const [itemDetails, setItemDetails2] = useState(null);
-  const setItemDetails = useCallback((itemDetails) => {
-    console.log("Setting itemDetails:");
-    setItemDetails2(itemDetails);
-  }, []);
+  const [itemDetails, setItemDetails] = useState(null);
 
-  // useEffect(() => {
-  //   console.log("SelectionContext updated - itemDetails.config.mapParams:", itemDetails?.config?.mapParams);
-  // }, [itemDetails]);
+  useEffect(() => {
+    window.parent.postMessage(
+      {
+        source: "APP",
+        type: "resource",
+        resource: { type: "itemConfig", itemConfig: itemDetails?{...itemDetails.config,children:null}:null },
+      },
+      "*"
+    );
+  }, [itemDetails]);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.source === "LayersEditor") {
+        const { action, nodeId } = event.data;
+        if (action === "setSelectedItemId") {
+          setSelectedItemId(nodeId);
+        }
+      }
+    };
+  
+    window.addEventListener("message", handleMessage);
+  
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <SelectedItemIdContext.Provider value={selectedItemId}>

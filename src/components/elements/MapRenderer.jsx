@@ -1,8 +1,22 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
-import { useSelectedItemId,  useSetters } from "../../components/contexts/SelectionContext";
+import {
+  useSelectedItemId,
+  useSetters,
+} from "../../components/contexts/SelectionContext";
 import { useMap } from "../../components/contexts/MapContext";
+
+const extractConfig = (filteredParts, item) => {
+  console.log(filteredParts,item)
+  let target = item;
+  for (const part of filteredParts) {
+    if (!target) break;
+    target = target?.[part];
+  }
+  return target;
+};
+
 
 const MapRendererX = ({
   drag,
@@ -16,19 +30,33 @@ const MapRendererX = ({
   updateItem,
 }) => {
   const [config, setConfig] = useState(null);
-  const [metaConfig, setMetaConfig] = useState([]);
+  // console.log(config)
+  // const [metaConfig, setMetaConfig] = useState([]);
   // const [selectedReturn, setSelectedReturn] = useState();
   const { setItemDetails } = useSetters();
   const selectedItemId = useSelectedItemId();
   const { setReturnLayer } = useMap();
   const ref = useRef();
   const prevConfigRef = useRef(null);
+  // useEffect(() => {
+  //   if (
+  //     config &&
+  //     JSON.stringify(prevConfigRef.current) !== JSON.stringify(config)
+  //   ) {
+  //     prevConfigRef.current = config;
+  //     updateItem({ ...item }); // Only update when config actually changes
+  //   } else if (config) {
+  //     prevConfigRef.current = config;
+  //   } // Track the last updated config
+  // }, [config, item, updateItem]);
+
   useEffect(() => {
-    if (config && prevConfigRef.current !== config) {
-      prevConfigRef.current = config; // Track the last updated config
-      updateItem({ ...item }); // Only update when config actually changes
+    const target = ref.current;
+    if (config && target && target.value !== config) {
+      target.value = config;
+      updateItem({ ...item });
     }
-  }, [config, item, updateItem]);
+  }, [config, updateItem, item]);
 
   useEffect(() => {
     if (selectedItemId === item.id) {
@@ -50,9 +78,23 @@ const MapRendererX = ({
       // eslint-disable-next-line no-constant-condition
       if (event.origin === "http://localhost:3000" || true) {
         const { type, resource } = event.data;
-        if (type === "resource" && resource.type === "metaConfig") {
+        // if (type === "resource" && resource.type === "metaConfig") {
+        //   if (resource.statementId === item.id) {
+        //     setMetaConfig(resource.metaConfig);
+        //   }
+        // }
+        if (type === "resource" && resource.type === "filteredParts") {
           if (resource.statementId === item.id) {
-            setMetaConfig(resource.metaConfig);
+            const filteredParts = resource.filteredParts;
+            const target = extractConfig(filteredParts, item);
+            ref.current = target
+            console.log(target)
+            setConfig(target.value);
+          }
+        }
+        if (type === "resource" && resource.type === "updateItem") {
+          if (resource.itemConfig.id === item.id) {
+            updateItem({ ...resource.itemConfig, bodyConfig: item.bodyConfig });
           }
         }
       }
@@ -67,7 +109,7 @@ const MapRendererX = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [item.id]);
+  }, [item, updateItem]);
 
   useEffect(() => {
     window.parent.postMessage(
@@ -80,34 +122,26 @@ const MapRendererX = ({
     );
   }, [item.id]);
 
-  useEffect(() => {
-    if (metaConfig?.returnStatements?.length > 0) {
-      const selectedReturn = metaConfig.returnStatements[0].index;
-      const metaParts = metaConfig.index.split("<>");
-      const returnParts = selectedReturn.split("<>");
-      let filteredParts = [...returnParts];
-      if (metaConfig.index && selectedReturn.startsWith(metaConfig.index)) {
-        filteredParts = returnParts.slice(metaParts.length);
-      }
-      let target = item;
-      for (const part of filteredParts) {
-        if (!target) break;
-        target = target?.[part];
-      }
-      if (target) {
-        ref.current = target;
-        setConfig(target.value);
-      }
-    }
-  }, [metaConfig, item, setConfig]);
-
-  useEffect(() => {
-    const target = ref.current;
-    if (config && target && target.value !== config) {
-      target.value = config;
-      updateItem({ ...item });
-    }
-  }, [config, updateItem, item]);
+  // useEffect(() => {
+  //   // if (metaConfig?.returnStatements?.length > 0) {
+  //     // const selectedReturn = metaConfig.returnStatements[0].index;
+  //     // const metaParts = metaConfig.index.split("<>");
+  //     // const returnParts = selectedReturn.split("<>");
+  //     // let filteredParts = [...returnParts];
+  //     // if (metaConfig.index && selectedReturn.startsWith(metaConfig.index)) {
+  //     //   filteredParts = returnParts.slice(metaParts.length);
+  //     // }
+  //   //   let target = item;
+  //   //   for (const part of filteredParts) {
+  //   //     if (!target) break;
+  //   //     target = target?.[part];
+  //   //   }
+  //   //   if (target) {
+  //   //     ref.current = target;
+  //   //     setConfig(target.value);
+  //   //   }
+  //   // }
+  // }, [metaConfig, item, setConfig]);
 
   const stableHeirarchy = useMemo(
     () => [...heirarchy, config?.id],
