@@ -6,9 +6,9 @@ import { useSelectedItemId,  useSetters } from "./contexts/SelectionContext";
 import OverlayBar from "./OverlayBar";
 import TextRenderer from "./elements/TextRenderer";
 import CombinedRenderer from "./elements/CombinedRenderer";
-// import ComponentRenderer from "./elements/ComponentRenderer";
 import { useVisibility } from "./contexts/VisibilityContext";
 import MapRenderer from "./elements/MapRenderer";
+import ConditionalRenderer from "./elements/ConditionalRenderer";
 
 const Renderer = ({
   item,
@@ -19,6 +19,7 @@ const Renderer = ({
   isPreview,
   updateItem,
   handleDelete,
+  overDetails,
 }) => {
   const { visibilityState, hoveredItemId } = useVisibility();
   const {  setSelectedItemId } = useSetters();
@@ -136,20 +137,20 @@ const Renderer = ({
           drag={drag}
           isPreview={isPreview}
         />
-      // ) : item.elementType === "COMPONENT" ? (
-      //   <ComponentRenderer
-      //     item={item}
-      //     handleSelect={handleSelect}
-      //     handleMouseOver={handleMouseOver}
-      //     opacity={opacity}
-      //     handleMouseOut={handleMouseOut}
-      //     heirarchy={heirarchy}
-      //     updateItem={updateItem}
-      //     drag={drag}
-      //     isPreview={isPreview}
-      //   />
       ) : item.elementType === "MAP" ? (
         <MapRenderer
+          item={item}
+          handleSelect={handleSelect}
+          drag={drag}
+          opacity={opacity}
+          handleMouseOver={handleMouseOver}
+          handleMouseOut={handleMouseOut}
+          heirarchy={heirarchy}
+          updateItem={updateItem}
+          isPreview={isPreview}
+        />
+      ) : item.elementType === "CONDITIONAL" ? (
+        <ConditionalRenderer
           item={item}
           handleSelect={handleSelect}
           drag={drag}
@@ -179,6 +180,7 @@ const Renderer = ({
           isVisible={isHovered || isSelected}
           setIsHovered={setIsHovered}
           isFirst={isFirst}
+          overDetails={overDetails}
         />
       )}
     </>
@@ -210,6 +212,7 @@ Renderer.propTypes = {
   isPreview: PropTypes.bool.isRequired,
   updateItem: PropTypes.func.isRequired,
   handleDelete: PropTypes.func,
+  overDetails: PropTypes.object,
 };
 
 export default Renderer;

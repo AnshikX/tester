@@ -31,11 +31,25 @@ export const SelectionProvider = ({ children }) => {
   const [itemDetails, setItemDetails] = useState(null);
 
   useEffect(() => {
+    setItemDetails((itemDetails) => {
+      if (itemDetails?.config?.id !== selectedItemId) {
+        return null;
+      }
+      return itemDetails;
+    });
+  }, [selectedItemId]);
+
+  useEffect(() => {
     window.parent.postMessage(
       {
         source: "APP",
         type: "resource",
-        resource: { type: "itemConfig", itemConfig: itemDetails?{...itemDetails.config,children:null}:null },
+        resource: {
+          type: "itemConfig",
+          itemConfig: itemDetails
+            ? { ...itemDetails.config, children: null }
+            : null,
+        },
       },
       "*"
     );
@@ -50,9 +64,9 @@ export const SelectionProvider = ({ children }) => {
         }
       }
     };
-  
+
     window.addEventListener("message", handleMessage);
-  
+
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 

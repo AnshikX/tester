@@ -9,6 +9,10 @@ const SideBarItem = ({ data }) => {
     if (newItem.elementType === "MAP") {
       newItem.bodyConfig.statements[0].value.id = crypto.randomUUID();
     }
+    if (newItem.elementType === "CONDITIONAL") {
+      newItem.trueCase.id = crypto.randomUUID();  
+      newItem.falseCase.id = crypto.randomUUID();
+    }
     return newItem;
   }, [data]);
   

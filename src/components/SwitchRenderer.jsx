@@ -25,10 +25,14 @@ const SwitchRenderer = ({
           return comp;
         });
       });
+    } else {
+      if (item.elementType === "html") {
+        setImportedComponent({ isLoaded: true });
+      } 
     }
   }, [item.$ref, item.elementType]);
 
-  if (item.elementType === "COMPONENT") {
+  if (item.elementType === "COMPONENT" || item.tagName === "fragment") {
     return importedComponent.isLoaded ? (
       <div
         id={item.id}
@@ -38,11 +42,13 @@ const SwitchRenderer = ({
         onMouseOut={handleMouseOut}
         ref={(node) => drag(node)}
       >
-        {React.createElement(
-          importedComponent.component,
-          { ...processedAttributes },
-          children
-        )}
+        {item.tagName === "fragment"
+          ? children
+          : React.createElement(
+              importedComponent.component,
+              { ...processedAttributes },
+              children
+            )}
       </div>
     ) : (
       <div>Loading...</div>

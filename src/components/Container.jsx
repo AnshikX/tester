@@ -2,18 +2,15 @@ import { useState, useEffect } from "react";
 import SideBarItem from "./sidebars/SideBarItem";
 import Renderer from "./Renderer";
 import "../styles/styles.css";
-import { useSelectedItemId,  useSetters } from "./contexts/SelectionContext";
-import RightSidebar from "./sidebars/RightSidebar";
+import { useSetters } from "./contexts/SelectionContext";
 import { usePropContext } from "./contexts/PropContext";
 
 const Container = () => {
-  const [ config, setConfig ] = useState({});
+  const [config, setConfig] = useState({});
   const [sidebarItems, setSidebarItems] = useState([]);
   const { setSelectedItemId } = useSetters();
-  const selectedItemId = useSelectedItemId();
   const [isPreview, setIsPreview] = useState(false);
   const { setScope, setProps } = usePropContext();
-  console.log("COntainer")
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
@@ -76,7 +73,6 @@ const Container = () => {
     const handleClickOutside = (event) => {
       if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
         setSelectedItemId(null);
-        
       }
     };
     document.addEventListener("click", handleClickOutside);
@@ -84,11 +80,14 @@ const Container = () => {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [setSelectedItemId]);
-  console.log(sidebarItems)
+
+  const toggle = () => {
+    window.parent.postMessage({ source: "APP", action: "TOGGLE_SIDEBAR" }, "*");
+  };
 
   return (
     <div className="body">
-      <div className={`sideBar ${isPreview ? "hidden" : "visible width-15"}`}>
+      <div className={`sideBar ${isPreview ? "hidden" : "visible width-15 p-2"}`}>
         {sidebarItems.map((sidebarItem, index) => (
           <SideBarItem key={index} data={sidebarItem} />
         ))}
@@ -98,7 +97,10 @@ const Container = () => {
         <div className="toggleButtonContainer">
           <button
             className="toggleButton"
-            onClick={() => setIsPreview((prev) => !prev)}
+            onClick={() => {
+              setIsPreview((prev) => !prev);
+              toggle();
+            }}
           >
             {isPreview ? "Edit" : "Finish Editing"}
           </button>

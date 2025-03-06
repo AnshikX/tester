@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { useSelectedItemId, useSetters } from "/src/components/contexts/SelectionContext";
 
 const TextRenderer = ({
   item,
@@ -13,6 +14,20 @@ const TextRenderer = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
+  const selectedItemId = useSelectedItemId();
+  const { setItemDetails } = useSetters();
+
+  useEffect(() => {
+    if (selectedItemId === item.id) {
+      setItemDetails({
+        config: item,
+        setConfig: (item) => {
+          updateItem({ ...item });
+        },
+      });
+    }
+  }, [selectedItemId, item, setItemDetails, updateItem]);
+  
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") {
       handleInputSave(e);

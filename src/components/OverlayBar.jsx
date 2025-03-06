@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import deleteButton from "./assets/svgs/delete-button.svg";
 
-const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFirst }) => {
+const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFirst, overDetails }) => {
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
   const getPosition = useCallback(() => {
@@ -132,7 +132,7 @@ const OverlayBar = ({ itemId, itemLabel, onDelete, isVisible, setIsHovered, isFi
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <span>{itemLabel || "Unnamed Item"}</span>
+          <span>{overDetails?.label || itemLabel || "Unnamed Item"} {overDetails && overDetails.labelSuffix}</span>
           {!isFirst && (
             <img
               src={deleteButton}

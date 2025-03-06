@@ -32,21 +32,14 @@ const CombinedRenderer = ({
 }) => {
   const { setItemDetails } = useSetters();
   const selectedItemId = useSelectedItemId();
-  const [localStyles, setLocalStyles] = useState({});
   const [currentItem, setCurrentItem] = useState(config);
   useEffect(() => {
     if (selectedItemId === currentItem.id) {
       setItemDetails({
         config: currentItem,
-        // setConfig: (item) => {
-        //   updateItem(item);
-        //   setCurrentItem(item);
-        // },
-        // localStyles: localStyles,
-        // setLocalStyles: setLocalStyles,
       });
     }
-  }, [selectedItemId, currentItem, setItemDetails, localStyles, updateItem]);
+  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
 
   const ref = useRef({
     queue: [],
@@ -196,21 +189,11 @@ const CombinedRenderer = ({
   }, [currentItem.attributes]);
 
   const appliedStyles = useMemo(() => {
-    if (
-      localStyles &&
-      selectedItemId === currentItem.id &&
-      Object.keys(localStyles).length > 0
-    ) {
-      return { ...processedAttributes.style, ...localStyles, opacity };
+    if (selectedItemId === currentItem.id) {
+      return { ...processedAttributes.style, opacity };
     }
     return { ...processedAttributes.style, opacity };
-  }, [
-    localStyles,
-    selectedItemId,
-    processedAttributes,
-    currentItem.id,
-    opacity,
-  ]);
+  }, [selectedItemId, processedAttributes, currentItem.id, opacity]);
 
   return (
     <SwitchRenderer
@@ -277,7 +260,6 @@ CombinedRenderer.propTypes = {
     elementType: PropTypes.string.isRequired,
     attributes: PropTypes.object,
     children: PropTypes.array,
-    $ref: PropTypes.string,
   }).isRequired,
   handleSelect: PropTypes.func.isRequired,
   handleMouseOver: PropTypes.func.isRequired,
