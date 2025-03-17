@@ -13,12 +13,91 @@ body {
 }
 
 .sideBar {
-  border-right: 1px solid #111;
   height: 100%;
-  color: #a5a5a4;
+  transition: width 0.3s ease-in-out;
+  overflow: auto;
+}
+
+.sideBar.dark, .section-title.dark{
   background: #1e1f1c;
+  color: #a5a5a4;
+}
+
+.sideBar.light, .section-title.light{
+  background:  #ffffff;
+  color: #252525;
+}
+
+.sideBarItem {
+  border-radius: 3px;
+  padding: 4px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.shortcutBar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4%;
+}
+
+
+/* Button Container */
+.toggleButtonContainer {
+  /* display: flex;
+  justify-content: flex-end; */
+  align-items: center;
+  /* padding: 20px; */
+  margin-right: 20px;
+  margin-bottom: 10px;
   transition: width 0.3s ease-in-out;
 }
+
+
+/* Toggle Button */
+.toggleButton {
+  padding: 2px 10px;
+  font-size: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.toggleButton:hover {
+  background-color: #0056b3;
+}
+
+
+.sideBarItem.dark, .shortcutBar.dark{
+  background: #272822;
+}
+
+.sideBarItem.light, .shortcutBar.light{
+  background:  #f7f7f7;
+}
+
+.section {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  cursor: pointer;
+  display: flex;
+  font-size: 16px;
+  justify-content:space-between;
+}
+
+.section-content {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 
 .rightSidebar {
   background: #f4f4f4;
@@ -51,12 +130,6 @@ body {
   transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
-.sideBarItem {
-  border-radius: 3px;
-  padding: 4px;
-  margin-top: 10px;
-  background: #272822;
-}
 
 .page {
   flex: 1 1 auto;
@@ -169,86 +242,9 @@ body {
 
 
 
-/* Button Container */
-.toggleButtonContainer {
-  height: 50px;
-  background: rgb(225, 225, 225); /* Black background */
-  display: flex;
-  justify-content: flex-end; /* Align button to the right */
-  align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid #ddd;
-  transition: width 0.3s ease-in-out;
-}
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+  background: #a5a5a4;
 
-/* Toggle Button */
-.toggleButton {
-  padding: 8px 16px;
-  font-size: 14px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.toggleButton:hover {
-  background-color: #0056b3;
-}
-
-.props-editor {
-  padding: 10px;
-  width: 100%; /* Ensures it fits within the right sidebar */
-  box-sizing: border-box; /* Prevents width overflow due to padding */
-}
-
-.props-editor select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  background: #fff;
-}
-
-.props-list {
-  margin-top: 10px;
-}
-
-.prop-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px;
-  border-bottom: 1px solid #ddd;
-}
-
-.prop-item label {
-  flex: 1;
-  font-size: 14px;
-  color: #333;
-}
-
-.prop-item input {
-  flex: 2;
-  padding: 5px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.prop-item button {
-  background: red;
-  color: white;
-  border: none;
-  padding: 5px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  border-radius: 4px;
-  margin-left: 5px;
-}
-
-.prop-item button:hover {
-  background: darkred;
 }

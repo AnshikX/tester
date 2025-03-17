@@ -11,14 +11,20 @@ import Renderer from "../Renderer";
 import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { getValue } from "../constants/processAttributesFunction";
 import SwitchRenderer from "../SwitchRenderer";
+import { usePushChanges } from "../contexts/UndoRedoContext";
 
-const debounce = (func, delay) => {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), delay);
-  };
+// const debounce = (func, delay) => {
+//   let timeout;
+//   return (...args) => {
+//     clearTimeout(timeout);
+//     timeout = setTimeout(() => func(...args), delay);
+//   };
+// };
+
+const deepCopy = (config) => {
+  return JSON.parse(JSON.stringify(config));
 };
+
 const CombinedRenderer = ({
   item: config,
   handleSelect,
@@ -32,24 +38,35 @@ const CombinedRenderer = ({
 }) => {
   const { setItemDetails } = useSetters();
   const selectedItemId = useSelectedItemId();
+  const { pushChanges } = usePushChanges();
   const [currentItem, setCurrentItem] = useState(config);
   useEffect(() => {
-    if (selectedItemId === currentItem.id) {
-      setItemDetails({
-        config: currentItem,
-      });
-    }
-  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+    setCurrentItem(config);
+  }, [config]);
 
-  const ref = useRef({
-    queue: [],
-    triggered: false,
-  });
-  const debouncedUpdate = useRef(
-    debounce((itemConfig) => {
-      updateItemRef.current(itemConfig);
-    }, 250)
-  );
+  useEffect(() => {
+    if (currentItem !== config && JSON.stringify(currentItem) !== JSON.stringify(config)) {
+      const previousItem = deepCopy(config);
+      // const updatedItem = deepCopy(currentItem);
+
+      pushChanges({
+        doChanges: () => {console.log("A"); setCurrentItem(previousItem)}
+      });
+
+      updateItem(currentItem);
+      // debouncedUpdate.current(updatedItem);
+    }
+  }, [currentItem,config, pushChanges, updateItem]);
+
+  useEffect(() => {
+    if (selectedItemId === currentItem.id) {
+      setItemDetails({ config: currentItem });
+    }
+  }, [selectedItemId, currentItem, setItemDetails]);
+
+  // const debouncedUpdate = useRef(
+  //   debounce((itemConfig) => updateItem(itemConfig), 250)
+  // );
 
   useEffect(() => {
     if (selectedItemId !== config.id) return;
@@ -61,7 +78,7 @@ const CombinedRenderer = ({
           console.log(resource);
           setCurrentItem((item) => {
             resource.itemConfig.children = item?.children;
-            debouncedUpdate.current(resource.itemConfig);
+            // debouncedUpdate.current(resource.itemConfig);
             return resource.itemConfig;
           });
         }
@@ -72,86 +89,43 @@ const CombinedRenderer = ({
     return () => window.removeEventListener("message", handleMessageEvent);
   }, [selectedItemId, config.id]);
 
-  const updateItemRef = useRef(updateItem);
-  useEffect(() => {
-    updateItemRef.current = updateItem;
-  }, [updateItem]);
-
-  const processQueue = useCallback(() => {
-    const callBack = () => {
-      setCurrentItem((item) => {
-        const newChildren = [...item.children];
-        while (ref.current.queue.length > 0) {
-          const operation = ref.current.queue.shift();
-          switch (operation.type) {
-            case "add": {
-              const { newChild, index } = operation;
-              newChildren.splice(index, 0, { ...newChild });
-              break;
-            }
-            case "remove": {
-              const { id } = operation;
-              const index = newChildren.findIndex((child) => child.id === id);
-              if (index !== -1) {
-                newChildren.splice(index, 1);
-              }
-              break;
-            }
-            case "update": {
-              const { child } = operation;
-              const index = newChildren.findIndex((c) => c.id === child.id);
-              if (index !== -1) {
-                newChildren[index] = child;
-              }
-              break;
-            }
-            default:
-              break;
-          }
-        }
-        ref.current.triggered = false;
-        const newItem = { ...item, children: newChildren };
-        setTimeout(() => updateItemRef.current(newItem), 0);
-        return newItem;
-      });
-    };
-    const func = async () => callBack();
-    func();
-  }, []);
-
-  const addToQueue = useCallback(
-    (operation) => {
-      ref.current.queue.push(operation);
-      if (!ref.current.triggered) {
-        ref.current.triggered = true;
-        processQueue();
-      }
-    },
-    [processQueue]
-  );
-
   const addChild = useCallback(
     (newChild, offset, index) => {
-      addToQueue({ type: "add", newChild, index: offset + index });
+      setCurrentItem((prevItem) => {
+        const updatedItem = deepCopy(prevItem);
+        updatedItem.children.splice(offset + index, 0, { ...newChild });
+        // debouncedUpdate.current(updatedItem);
+        return updatedItem;
+      });
     },
-    [addToQueue]
+    []
   );
 
   const removeChild = useCallback(
     (id) => {
-      addToQueue({ type: "remove", id });
+      setCurrentItem((prevItem) => {
+        const updatedItem = deepCopy(prevItem);
+        updatedItem.children = updatedItem.children.filter(
+          (child) => child.id !== id
+        );
+        // debouncedUpdate.current(updatedItem);
+        return updatedItem;
+      });
     },
-    [addToQueue]
+    []
   );
 
-  const updateChild = useCallback(
-    (child) => {
-      addToQueue({ type: "update", child });
-    },
-    [addToQueue]
-  );
+  const updateChild = useCallback((child) => {
+    setCurrentItem((prevItem) => {
+      const updatedItem = deepCopy(prevItem);
+      const index = updatedItem.children.findIndex((c) => c.id === child.id);
+      if (index !== -1) {
+        updatedItem.children[index] = child;
+      }
+      return updatedItem;
+    });
+  }, []);
 
-  // Stabilize the heirarchy to avoid unnecessary re-renders
   const stableHeirarchy = useMemo(
     () => [...heirarchy, currentItem.id],
     [currentItem.id, heirarchy]
@@ -161,10 +135,7 @@ const CombinedRenderer = ({
     if (!currentItem.attributes) return {};
     return Object.entries(currentItem.attributes).reduce(
       (acc, [key, value]) => {
-        if (key.startsWith("on")) {
-          // Skip event listeners
-          return acc;
-        }
+        if (key.startsWith("on")) return acc;
         if (key === "style" && value?.type === "OBJECT") {
           const computedStyles = Object.entries(value.properties).reduce(
             (styleAcc, [styleKey, styleValue]) => {
@@ -189,11 +160,8 @@ const CombinedRenderer = ({
   }, [currentItem.attributes]);
 
   const appliedStyles = useMemo(() => {
-    if (selectedItemId === currentItem.id) {
-      return { ...processedAttributes.style, opacity };
-    }
     return { ...processedAttributes.style, opacity };
-  }, [selectedItemId, processedAttributes, currentItem.id, opacity]);
+  }, [processedAttributes, opacity]);
 
   return (
     <SwitchRenderer
@@ -223,7 +191,7 @@ const CombinedRenderer = ({
       })}
       {!isPreview &&
         currentItem.children &&
-        (currentItem.children?.length === 0 ? (
+        (currentItem.children.length === 0 ? (
           <DropZone
             key={`${currentItem.id}-drop`}
             onDrop={(addedItem) =>

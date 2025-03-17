@@ -1,16 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import SideBarItem from "./sidebars/SideBarItem";
 import Renderer from "./Renderer";
 import "../styles/styles.css";
 import { useSetters } from "./contexts/SelectionContext";
-import { usePropContext } from "./contexts/PropContext";
+import { useUndoRedo } from "./contexts/UndoRedoContext";
+import undoButton from "../components/assets/svgs/undo-button.svg";
+import redoButton from "../components/assets/svgs/redo-button.svg";
 
 const Container = () => {
-  const [config, setConfig] = useState({});
-  const [sidebarItems, setSidebarItems] = useState([]);
+  const config = useRef({});
+  const [sidebarItems, setSidebarItems] = useState({
+    htmlItems: [],
+    components: [],
+  });
   const { setSelectedItemId } = useSetters();
   const [isPreview, setIsPreview] = useState(false);
-  const { setScope, setProps } = usePropContext();
+  const { undoChanges, redoChanges, undoStack, redoStack } = useUndoRedo();
+  const [theme, setTheme] = useState("dark");
+
+  const trigger = useState(0)[1];
+  
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
@@ -19,56 +28,50 @@ const Container = () => {
         if (type === "resource") {
           const resource = event.data.resource;
           if (resource.type === "componentConfig") {
-            setConfig(resource.component);
+            config.current = resource.component;
+            trigger((x) => x + 1);
           }
           if (resource.type === "sidebarItems") {
-            setSidebarItems(resource.sideBarItems);
+            setSidebarItems(resource.sidebarItems);
           }
-          if (resource.type === "scope") {
-            setScope(resource.scope);
-          }
-          if (resource.type === "props") {
-            setProps(resource.props);
+          if (resource.type === "theme") {
+            setTheme(resource.theme);
           }
         }
       }
     };
+
     window.parent.postMessage(
       { source: "APP", type: "request", request: { type: "componentConfig" } },
       "*"
     );
-
     window.parent.postMessage(
       { source: "APP", type: "request", request: { type: "sidebarItems" } },
       "*"
     );
-
     window.parent.postMessage(
-      { source: "APP", type: "request", request: { type: "props" } },
-      "*"
-    );
-
-    window.parent.postMessage(
-      { source: "APP", type: "request", request: { type: "scope" } },
+      { source: "APP", type: "request", request: { type: "theme" } },
       "*"
     );
 
     window.addEventListener("message", handleMessage);
-
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [setConfig, setSidebarItems, setScope, setProps]);
-  useEffect(() => {
+  }, [setSidebarItems, trigger]);
+
+  const setConfig = useCallback((conf) => {
     window.parent.postMessage(
       {
         source: "APP",
         type: "resource",
-        resource: { type: "customConfig", customConfig: config },
+        resource: { type: "customConfig", customConfig: conf },
       },
       "*"
     );
-  }, [config]);
+    config.current = conf;
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
@@ -87,29 +90,50 @@ const Container = () => {
 
   return (
     <div className="body">
-      <div className={`sideBar ${isPreview ? "hidden" : "visible width-15 p-2"}`}>
-        {sidebarItems.map((sidebarItem, index) => (
-          <SideBarItem key={index} data={sidebarItem} />
-        ))}
+      <div
+        className={`sideBar ${isPreview ? "hidden" : "visible width-15 p-2"} ${
+          theme === "dark" ? "dark" : "light"
+        }`}
+      >
+        <SideBarItem sidebarItems={sidebarItems} theme={theme} />
       </div>
       <div className={`pageContainer ${isPreview ? "width-100" : "width-60"}`}>
-        {/* Toggle Button Container */}
-        <div className="toggleButtonContainer">
-          <button
-            className="toggleButton"
-            onClick={() => {
-              setIsPreview((prev) => !prev);
-              toggle();
-            }}
+        <div className={`shortcutBar ${theme === "dark" ? "dark" : "light"}`}>
+          <div className={`${isPreview ? 'hidden' : '' }`}>
+            <span
+              onClick={undoChanges}
+              className="mx-2"
+              disabled={undoStack.length === 0}
+            >
+              <img src={undoButton} alt="undo" />
+            </span>
+            <span
+              onClick={redoChanges}
+              disabled={redoStack.length === 0}
+            >
+              <img src={redoButton} alt="redo" />
+            </span>
+          </div>
+          <div
+            className={`toggleButtonContainer ${
+              theme === "dark" ? "dark" : "light"
+            }`}
           >
-            {isPreview ? "Edit" : "Finish Editing"}
-          </button>
+            <button
+              className="toggleButton"
+              onClick={() => {
+                setIsPreview((prev) => !prev);
+                toggle();
+              }}
+            >
+              {isPreview ? "Edit" : "Finish Editing"}
+            </button>
+          </div>
         </div>
-
         <div className="page" id="page">
-          {config && config.elementType ? (
+          {config.current && config.current.elementType ? (
             <Renderer
-              item={config}
+              item={config.current}
               heirarchy={[config.id]}
               isPreview={isPreview}
               updateItem={setConfig}
@@ -119,13 +143,8 @@ const Container = () => {
           )}
         </div>
       </div>
-
-      {/* <div
-        className={`rightSidebar ${isPreview ? "hidden" : "visible width-25"}`}
-      >
-        <RightSidebar config={config} selectedItemId={selectedItemId} />
-      </div> */}
     </div>
   );
 };
+
 export default Container;

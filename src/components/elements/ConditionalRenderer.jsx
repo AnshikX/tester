@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
-import { useSelectedItemId, useSetters } from "/src/components/contexts/SelectionContext";
+import {
+  useSelectedItemId,
+  useSetters,
+} from "/src/components/contexts/SelectionContext";
 
 const ConditionalRendererX = ({
   drag,
@@ -14,84 +17,113 @@ const ConditionalRendererX = ({
   isPreview,
   updateItem,
 }) => {
+  const [currentItem, setCurrentItem] = useState(item);
   const selectedItemId = useSelectedItemId();
   const { setItemDetails } = useSetters();
 
   useEffect(() => {
-    if (selectedItemId === item.id) {
+    setCurrentItem(item);
+  }, [item]);
+
+  useEffect(() => {
+    if (selectedItemId === currentItem.id) {
       setItemDetails({
-        config: item,
-        setConfig: (item) => {
-          updateItem({ ...item });
+        config: currentItem,
+        setConfig: (updatedItem) => {
+          setCurrentItem(updatedItem);
+          updateItem({ ...updatedItem });
         },
       });
     }
-  }, [selectedItemId, item, setItemDetails, updateItem]);
-  
-  
+  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+
+  useEffect(() => {
+    if (selectedItemId !== currentItem.id) return;
+
+    const handleMessageEvent = (event) => {
+      if (event.data?.source === "BREEZE" && event.data.type === "resource") {
+        const { resource } = event.data;
+        if (resource.type === "updateItem") {
+          console.log(resource);
+          setCurrentItem(resource.itemConfig);
+          updateItem(resource.itemConfig);
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessageEvent);
+    return () => window.removeEventListener("message", handleMessageEvent);
+  }, [selectedItemId, currentItem.id, updateItem]);
+
   const stableTrueHeirarchy = useMemo(
-    () => [...heirarchy, item?.trueCase?.id],
-    [heirarchy, item?.trueCase?.id]
+    () => [...heirarchy, currentItem?.trueCase?.id],
+    [heirarchy, currentItem?.trueCase?.id]
   );
   const stableFalseHeirarchy = useMemo(
-    () => [...heirarchy, item?.falseCase?.id],
-    [heirarchy, item?.falseCase?.id]
+    () => [...heirarchy, currentItem?.falseCase?.id],
+    [heirarchy, currentItem?.falseCase?.id]
   );
-  if (!item?.id) return null;
+
+  if (!currentItem?.id) return null;
 
   return (
-    <>
-      <div
-        ref={(node) => drag(node)}
-        onClick={handleSelect}
-        style={{ opacity }}
-        onMouseOver={handleMouseOver}
-        id={item.id}
-        onMouseOut={handleMouseOut}
-        className="p-4"
-      >
-        {/* True Case */}
-
-        {item.trueCase && (
+    <div
+      ref={(node) => drag(node)}
+      onClick={handleSelect}
+      style={{ opacity }}
+      onMouseOver={handleMouseOver}
+      id={currentItem.id}
+      onMouseOut={handleMouseOut}
+      className="p-4"
+    >
+      {/* True Case */}
+      {currentItem.trueCase && (
+        <Renderer
+          key={currentItem.trueCase.id}
+          item={currentItem.trueCase}
+          heirarchy={stableTrueHeirarchy}
+          isPreview={isPreview}
+          updateItem={(updatedCase) => {
+            setCurrentItem((prev) => ({
+              ...prev,
+              trueCase: updatedCase,
+            }));
+            updateItem({
+              ...currentItem,
+              trueCase: updatedCase,
+            });
+          }}
+          overDetails={{
+            labelSuffix: "(TrueCase)",
+          }}
+        />
+      )}
+      {/* False Case */}
+      {currentItem.falseCase && (
+        <>
+          <div className="my-3"></div>
           <Renderer
-            key={item.trueCase.id}
-            item={item.trueCase}
-            heirarchy={stableTrueHeirarchy}
+            key={currentItem.falseCase.id}
+            item={currentItem.falseCase}
+            heirarchy={stableFalseHeirarchy}
             isPreview={isPreview}
             updateItem={(updatedCase) => {
+              setCurrentItem((prev) => ({
+                ...prev,
+                falseCase: updatedCase,
+              }));
               updateItem({
-                ...item,
-                trueCase: updatedCase,
+                ...currentItem,
+                falseCase: updatedCase,
               });
             }}
             overDetails={{
-              labelSuffix: '(TrueCase)'
+              labelSuffix: "(FalseCase)",
             }}
           />
-        )}
-        {/* False Case */}
-        {item.falseCase && (
-          <>
-            <div className="my-3"></div>
-            <Renderer
-              key={item.falseCase.id}
-              item={item.falseCase}
-              heirarchy={stableFalseHeirarchy}
-              isPreview={isPreview}
-              updateItem={(updatedCase) => {
-                updateItem({
-                  ...item,
-                  falseCase: updatedCase,
-                });
-              }}
-               overDetails={{
-                labelSuffix: '(FalseCase)'
-               }}
-            />
-          </>
-        )}
-      </div>
-    </>
+        </>
+      )}
+    </div>
   );
 };
 

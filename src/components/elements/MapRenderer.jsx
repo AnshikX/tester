@@ -28,21 +28,27 @@ const MapRendererX = ({
   updateItem,
 }) => {
   const [configs, setConfigs] = useState([]);
+  const [currentItem, setCurrentItem] = useState(item);
   const { setItemDetails } = useSetters();
   const selectedItemId = useSelectedItemId();
   const { setReturnLayer } = useMap();
   const ref = useRef([]);
 
   useEffect(() => {
-    if (selectedItemId === item.id) {
+    setCurrentItem(item);
+  }, [item]);
+
+  useEffect(() => {
+    if (selectedItemId === currentItem.id) {
       setItemDetails({
-        config: item,
-        setConfig: (item) => {
-          updateItem({ ...item });
+        config: currentItem,
+        setConfig: (updatedItem) => {
+          setCurrentItem(updatedItem);
+          updateItem({ ...updatedItem });
         },
       });
     }
-  }, [selectedItemId, item, setItemDetails, updateItem]);
+  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
 
   useEffect(() => {
     let changed = false;
@@ -53,13 +59,13 @@ const MapRendererX = ({
       }
     }
     if (changed) {
-      updateItem({ ...item });
+      updateItem({ ...currentItem });
     }
-  }, [configs, updateItem, item]);
-  
+  }, [configs, updateItem, currentItem]);
+
   useEffect(() => {
-    setReturnLayer(item.id, configs);
-  }, [item.id, configs, setReturnLayer]);
+    setReturnLayer(currentItem.id, configs);
+  }, [currentItem.id, configs, setReturnLayer]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -67,9 +73,9 @@ const MapRendererX = ({
       if (event.origin === "http://localhost:3000" || true) {
         const { type, resource } = event.data;
         if (type === "resource" && resource.type === "filteredParts") {
-          if (resource.statementId === item.id) {
+          if (resource.statementId === currentItem.id) {
             const extractedConfigs = resource.filteredParts.map((parts) =>
-              extractConfig(parts, item)
+              extractConfig(parts, currentItem)
             );
             const configs = [];
             extractedConfigs.forEach((element, i) => {
@@ -80,44 +86,53 @@ const MapRendererX = ({
           }
         }
         if (type === "resource" && resource.type === "updateItem") {
-          if (resource.itemConfig?.id === item.id) {
-            updateItem({ ...resource.itemConfig, bodyConfig: item.bodyConfig });
+          if (resource.itemConfig?.id === currentItem.id) {
+            setCurrentItem((prev) => ({
+              ...prev,
+              ...resource.itemConfig,
+              bodyConfig: prev.bodyConfig,
+            }));
+            updateItem((prev) => ({
+              ...prev,
+              ...resource.itemConfig,
+              bodyConfig: prev.bodyConfig,
+            }));
           }
         }
       }
     };
+
     window.parent.postMessage(
       { source: "APP", type: "request", request: { type: "metaConfig" } },
       "*"
     );
 
     window.addEventListener("message", handleMessage);
-
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [item, updateItem]);
+  }, [currentItem, updateItem]);
 
   useEffect(() => {
     window.parent.postMessage(
       {
         source: "APP",
         type: "request",
-        request: { type: "metaConfig", statementId: item.id },
+        request: { type: "metaConfig", statementId: currentItem.id },
       },
       "*"
     );
-  }, [item.id]);
+  }, [currentItem.id]);
 
   const stableHeirarchy = useMemo(
     () => [...heirarchy, ...configs.map((config) => config?.id)],
     [heirarchy, configs]
   );
 
-  function updateConfigs(index, item) {
+  function updateConfigs(index, updatedConfig) {
     setConfigs((prev) => {
       const newConfigs = [...prev];
-      newConfigs[index] = item;
+      newConfigs[index] = updatedConfig;
       return newConfigs;
     });
   }
@@ -130,7 +145,7 @@ const MapRendererX = ({
       onClick={handleSelect}
       style={{ opacity }}
       onMouseOver={handleMouseOver}
-      id={item.id}
+      id={currentItem.id}
       onMouseOut={handleMouseOut}
       className="p-4"
     >
@@ -140,7 +155,7 @@ const MapRendererX = ({
           item={config}
           heirarchy={stableHeirarchy}
           isPreview={isPreview}
-          updateItem={(item) => updateConfigs(index, item)}
+          updateItem={(updatedItem) => updateConfigs(index, updatedItem)}
         />
       ))}
     </div>

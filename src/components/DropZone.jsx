@@ -19,6 +19,7 @@ const DropZone = ({ onDrop, className, children, isOnly, heirarchy = [] }) => {
         if (getItem) {
           onDrop(getItem(item));
         } else if (item) {
+          console.log('this')
           onDrop(item);
         } else {
           console.warn("Something went wrong");

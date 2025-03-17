@@ -29,7 +29,6 @@ RenderChildren.propTypes = {
 export const SelectionProvider = ({ children }) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [itemDetails, setItemDetails] = useState(null);
-
   useEffect(() => {
     setItemDetails((itemDetails) => {
       if (itemDetails?.config?.id !== selectedItemId) {

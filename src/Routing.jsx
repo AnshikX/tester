@@ -13,9 +13,9 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { DndProvider } from "react-dnd";
 import { SelectionProvider } from "/src/components/contexts/SelectionContext.jsx";
 import { VisibilityProvider } from "/src/components/contexts/VisibilityContext.jsx";
-import { PropProvider } from "/src/components/contexts/PropContext.jsx";
 import { MapProvider } from "/src/components/contexts/MapContext.jsx";
 import Main from "/src/components/Main.jsx";
+import { UndoRedoProvider } from "/src/components/contexts/UndoRedoContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -26,16 +26,17 @@ const router = createBrowserRouter(
       <Route
         path="breeze/config-builder"
         element={
-          <MapProvider>
-          <VisibilityProvider>
-            <PropProvider>
-                <SelectionProvider>
-                  <DndProvider backend={HTML5Backend}>
-                    <Container />
-                  </DndProvider>
-                </SelectionProvider>
-            </PropProvider>
-          </VisibilityProvider></MapProvider>
+          <UndoRedoProvider>
+            <MapProvider>
+              <VisibilityProvider>
+                  <SelectionProvider>
+                    <DndProvider backend={HTML5Backend}>
+                      <Container />
+                    </DndProvider>
+                  </SelectionProvider>
+              </VisibilityProvider>
+            </MapProvider>{" "}
+          </UndoRedoProvider>
         }
       />
     </Route>

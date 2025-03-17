@@ -13,21 +13,27 @@ const TextRenderer = ({
   isPreview,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [currentItem, setCurrentItem] = useState(item);
 
   const selectedItemId = useSelectedItemId();
   const { setItemDetails } = useSetters();
 
   useEffect(() => {
-    if (selectedItemId === item.id) {
+    setCurrentItem(item);
+  }, [item]);
+
+  useEffect(() => {
+    if (selectedItemId === currentItem.id) {
       setItemDetails({
-        config: item,
-        setConfig: (item) => {
-          updateItem({ ...item });
+        config: currentItem,
+        setConfig: (updatedItem) => {
+          setCurrentItem(updatedItem);
+          updateItem({ ...updatedItem });
         },
       });
     }
-  }, [selectedItemId, item, setItemDetails, updateItem]);
-  
+  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") {
       handleInputSave(e);
@@ -36,7 +42,9 @@ const TextRenderer = ({
 
   const handleInputSave = (e) => {
     const newValue = e.currentTarget.value;
-    updateItem({ ...item, value: newValue });
+    const updatedItem = { ...currentItem, value: newValue };
+    setCurrentItem(updatedItem);
+    updateItem(updatedItem);
     setIsEditing(false);
   };
 
@@ -44,6 +52,7 @@ const TextRenderer = ({
     e.stopPropagation();
     setIsEditing(true);
   };
+
   const handleBlur = (e) => {
     if (isEditing) {
       handleInputSave(e);
@@ -51,12 +60,12 @@ const TextRenderer = ({
   };
 
   return isPreview ? (
-    item.value || "Empty Text"
+    currentItem.value || "Empty Text"
   ) : isEditing ? (
     <input
-      id={item.id}
+      id={currentItem.id}
       type="text"
-      defaultValue={item.value}
+      defaultValue={currentItem.value}
       onMouseOver={handleMouseOver}
       onMouseOut={handleMouseOut}
       autoFocus
@@ -65,7 +74,7 @@ const TextRenderer = ({
     />
   ) : (
     <span
-      id={item.id}
+      id={currentItem.id}
       style={{ opacity }}
       onClick={handleSelect}
       onDoubleClick={handleDoubleClick}
@@ -73,7 +82,7 @@ const TextRenderer = ({
       onMouseOut={handleMouseOut}
       ref={(node) => drag(node)}
     >
-      {item.value || "Empty Text"}
+      {currentItem.value || "Empty Text"}
     </span>
   );
 };
