@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
   useSelectedItemId,
@@ -23,7 +23,27 @@ const TextRenderer = ({
   const selectedItemId = useSelectedItemId();
   const { setItemDetails } = useSetters();
   const { pushChanges } = usePushChanges();
-  const previousConfigRef = useRef(currentItem);
+  const previousConfigRef = useRef(deepCopy(currentItem));
+
+  const updateCurrentItem = useCallback(
+    (stateOrCallBack) => {
+      setCurrentItem((prev) => {
+        let next;
+        if (typeof stateOrCallBack === "function") {
+          next = stateOrCallBack(prev);
+        } else {
+          next = stateOrCallBack;
+        }
+        pushChanges({
+          doChanges: updateCurrentItem.bind(null, previousConfigRef.current),
+        });
+        previousConfigRef.current = deepCopy(next);
+        updateItem(next);
+        return next;
+      });
+    },
+    [updateItem, pushChanges]
+  );
 
   useEffect(() => {
     setCurrentItem(item);
@@ -33,23 +53,10 @@ const TextRenderer = ({
     if (selectedItemId === currentItem.id) {
       setItemDetails({
         config: currentItem,
-        setConfig: (updatedItem) => {
-          setCurrentItem(updatedItem);
-          updateItem({ ...updatedItem });
-        },
+        setConfig: updateCurrentItem,
       });
     }
-  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
-
-  useEffect(() => {
-    if (currentItem) {
-      pushChanges({
-        doChanges: setCurrentItem.bind(null, previousConfigRef.current),
-      });
-      console.log(previousConfigRef.current);
-      previousConfigRef.current = deepCopy(currentItem);
-    }
-  }, [currentItem, pushChanges]);
+  }, [selectedItemId, currentItem, setItemDetails, updateCurrentItem]);
 
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -59,9 +66,11 @@ const TextRenderer = ({
 
   const handleInputSave = (e) => {
     const newValue = e.currentTarget.value;
-    const updatedItem = { ...currentItem, value: newValue };
-    setCurrentItem(updatedItem);
-    updateItem(updatedItem);
+    updateCurrentItem((currentItem) => {
+      const updatedItem = { ...currentItem, value: newValue };
+      return updatedItem;
+    });
+
     setIsEditing(false);
   };
 

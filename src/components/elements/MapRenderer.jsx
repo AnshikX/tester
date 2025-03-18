@@ -44,7 +44,7 @@ const MapRendererX = ({
         config: currentItem,
         setConfig: (updatedItem) => {
           setCurrentItem(updatedItem);
-          updateItem(updatedItem);
+          updateItem({ ...updatedItem });
         },
       });
     }
@@ -59,7 +59,7 @@ const MapRendererX = ({
       }
     }
     if (changed) {
-      updateItem({ ...currentItem });
+      updateItem(currentItem );
     }
   }, [configs, updateItem, currentItem]);
 

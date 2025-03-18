@@ -22,8 +22,6 @@ import deepCopy from "/src/utils/deepcopy";
 //   };
 // };
 
-
-
 const CombinedRenderer = ({
   item: config,
   handleSelect,
@@ -41,21 +39,31 @@ const CombinedRenderer = ({
   const [currentItem, setCurrentItem] = useState(config);
   const previousConfigRef = useRef(currentItem);
   const removedIndexRef = useRef();
-
   removedIndexRef.current = null;
+
+  const updateCurrentItem = useCallback(
+    (stateOrCallBack) => {
+      setCurrentItem((prev) => {
+        let next;
+        if (typeof stateOrCallBack === "function") {
+          next = stateOrCallBack(prev);
+        } else {
+          next = stateOrCallBack;
+        }
+        pushChanges({
+          doChanges: updateCurrentItem.bind(null, previousConfigRef.current),
+        });
+        previousConfigRef.current = deepCopy(next);
+        updateItem(next);
+        return next;
+      });
+    },
+    [updateItem, pushChanges]
+  );
 
   useEffect(() => {
     setCurrentItem(config);
   }, [config]);
-
-  useEffect(() => {
-    if (currentItem) {
-      pushChanges({
-        doChanges: setCurrentItem.bind(null,previousConfigRef.current),
-      });
-      previousConfigRef.current =deepCopy(currentItem);
-    }
-  }, [currentItem, pushChanges]);
 
   useEffect(() => {
     if (selectedItemId === currentItem.id) {
@@ -70,7 +78,7 @@ const CombinedRenderer = ({
       if (event.data?.source === "BREEZE" && event.data.type === "resource") {
         const { resource } = event.data;
         if (resource.type === "updateItem") {
-          setCurrentItem((item) => {
+          updateCurrentItem((item) => {
             resource.itemConfig.children = item?.children;
             // debouncedUpdate.current(resource.itemConfig);
             if (JSON.stringify(resource.itemConfig) !== JSON.stringify(item)) {
@@ -86,11 +94,11 @@ const CombinedRenderer = ({
 
     window.addEventListener("message", handleMessageEvent);
     return () => window.removeEventListener("message", handleMessageEvent);
-  }, [selectedItemId, config.id]);
+  }, [selectedItemId, config.id,updateCurrentItem]);
 
   const addChild = useCallback(
     (newChild, offset, index) => {
-      setCurrentItem((prevItem) => {
+      updateCurrentItem((prevItem) => {
         console.log(removedIndexRef.current, prevItem.children.length);
         let pos = offset + index;
         console.log(pos);
@@ -103,26 +111,24 @@ const CombinedRenderer = ({
 
         updatedItem.children.splice(pos, 0, { ...newChild });
         // debouncedUpdate.current(updatedItem);
-        updateItem(updatedItem);
         return updatedItem;
       });
     },
-    [updateItem]
+    [updateCurrentItem]
   );
 
   const removeChild = useCallback(
     (id) => {
-      setCurrentItem((prevItem) => {
+      updateCurrentItem((prevItem) => {
         const updatedItem = { ...prevItem };
         const index = prevItem.children.findIndex((c) => c.id === id);
         removedIndexRef.current = index;
         updatedItem.children.splice(index, 1);
-        updateItem(updatedItem);
 
         return updatedItem;
       });
     },
-    [updateItem]
+    [updateCurrentItem]
   );
 
   const updateChild = useCallback(
@@ -134,11 +140,10 @@ const CombinedRenderer = ({
         } else {
           alert("SOMETHING WENT WRONG Combined renderer updatechild");
         }
-        updateItem(prevItem);
         return prevItem;
-      });
+      })
     },
-    [updateItem]
+    []
   );
 
   const stableHeirarchy = useMemo(

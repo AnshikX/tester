@@ -18,11 +18,8 @@ export const UndoRedoProvider = ({ children }) => {
   const reDidChanges = useRef(false);
   const sequenceRef = useRef(0);
 
-  // useEffect(() => {
-  //   undidChangesRef.current = undidChanges;
-  // }, [undidChanges]);
-
   const pushChanges = useCallback((changeDetails) => {
+    console.log("Push changes called", changeDetails)
     changeDetails.sequence = sequenceRef.current;
     console.log(undidChanges.current);
 
@@ -45,6 +42,8 @@ export const UndoRedoProvider = ({ children }) => {
   }, []);
   
   const undoChanges = useCallback(() => {
+    undidChanges.current = true;
+
     setUndoStack((prevStack) => {
       if (prevStack.length === 0) return prevStack;
 
@@ -64,7 +63,6 @@ export const UndoRedoProvider = ({ children }) => {
       }
       return newStack;
     });
-    undidChanges.current = true;
   }, []);
 
   const redoChanges = useCallback(() => {
