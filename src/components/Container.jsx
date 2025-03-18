@@ -70,7 +70,6 @@ const Container = () => {
       "*"
     );
     config.current = conf;
-    console.log(conf)
   }, []);
 
   useEffect(() => {

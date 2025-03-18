@@ -1,4 +1,4 @@
 const Main = ({ prop1 }) => {
-  return <div>123</div>;
+  return <div>1</div>;
 };
 export default Main;
