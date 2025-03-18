@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { useSelectedItemId, useSetters } from "/src/components/contexts/SelectionContext";
+import {
+  useSelectedItemId,
+  useSetters,
+} from "/src/components/contexts/SelectionContext";
+import { usePushChanges } from "/src/components/contexts/UndoRedoContext";
+import deepCopy from "/src/utils/deepcopy";
 
 const TextRenderer = ({
   item,
@@ -17,6 +22,8 @@ const TextRenderer = ({
 
   const selectedItemId = useSelectedItemId();
   const { setItemDetails } = useSetters();
+  const { pushChanges } = usePushChanges();
+  const previousConfigRef = useRef(currentItem);
 
   useEffect(() => {
     setCurrentItem(item);
@@ -33,6 +40,16 @@ const TextRenderer = ({
       });
     }
   }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+
+  useEffect(() => {
+    if (currentItem) {
+      pushChanges({
+        doChanges: setCurrentItem.bind(null, previousConfigRef.current),
+      });
+      console.log(previousConfigRef.current);
+      previousConfigRef.current = deepCopy(currentItem);
+    }
+  }, [currentItem, pushChanges]);
 
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") {

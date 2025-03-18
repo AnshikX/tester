@@ -12,6 +12,7 @@ import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { getValue } from "../constants/processAttributesFunction";
 import SwitchRenderer from "../SwitchRenderer";
 import { usePushChanges } from "../contexts/UndoRedoContext";
+import deepCopy from "/src/utils/deepcopy";
 
 // const debounce = (func, delay) => {
 //   let timeout;
@@ -21,9 +22,7 @@ import { usePushChanges } from "../contexts/UndoRedoContext";
 //   };
 // };
 
-const deepCopy = (config) => {
-  return JSON.parse(JSON.stringify(config));
-};
+
 
 const CombinedRenderer = ({
   item: config,
@@ -40,33 +39,29 @@ const CombinedRenderer = ({
   const selectedItemId = useSelectedItemId();
   const { pushChanges } = usePushChanges();
   const [currentItem, setCurrentItem] = useState(config);
+  const previousConfigRef = useRef(currentItem);
+  const removedIndexRef = useRef();
+
+  removedIndexRef.current = null;
+
   useEffect(() => {
     setCurrentItem(config);
   }, [config]);
 
   useEffect(() => {
-    if (currentItem !== config && JSON.stringify(currentItem) !== JSON.stringify(config)) {
-      const previousItem = deepCopy(config);
-      // const updatedItem = deepCopy(currentItem);
-
+    if (currentItem) {
       pushChanges({
-        doChanges: () => {console.log("A"); setCurrentItem(previousItem)}
+        doChanges: setCurrentItem.bind(null,previousConfigRef.current),
       });
-
-      updateItem(currentItem);
-      // debouncedUpdate.current(updatedItem);
+      previousConfigRef.current =deepCopy(currentItem);
     }
-  }, [currentItem,config, pushChanges, updateItem]);
+  }, [currentItem, pushChanges]);
 
   useEffect(() => {
     if (selectedItemId === currentItem.id) {
       setItemDetails({ config: currentItem });
     }
   }, [selectedItemId, currentItem, setItemDetails]);
-
-  // const debouncedUpdate = useRef(
-  //   debounce((itemConfig) => updateItem(itemConfig), 250)
-  // );
 
   useEffect(() => {
     if (selectedItemId !== config.id) return;
@@ -75,11 +70,15 @@ const CombinedRenderer = ({
       if (event.data?.source === "BREEZE" && event.data.type === "resource") {
         const { resource } = event.data;
         if (resource.type === "updateItem") {
-          console.log(resource);
           setCurrentItem((item) => {
             resource.itemConfig.children = item?.children;
             // debouncedUpdate.current(resource.itemConfig);
-            return resource.itemConfig;
+            if (JSON.stringify(resource.itemConfig) !== JSON.stringify(item)) {
+              console.log(resource);
+              return resource.itemConfig;
+            } else {
+              return item;
+            }
           });
         }
       }
@@ -92,39 +91,55 @@ const CombinedRenderer = ({
   const addChild = useCallback(
     (newChild, offset, index) => {
       setCurrentItem((prevItem) => {
-        const updatedItem = deepCopy(prevItem);
-        updatedItem.children.splice(offset + index, 0, { ...newChild });
+        console.log(removedIndexRef.current, prevItem.children.length);
+        let pos = offset + index;
+        console.log(pos);
+        if (removedIndexRef.current <= pos) {
+          // pos = pos - 1;
+          console.log(pos);
+        }
+        removedIndexRef.current = null;
+        const updatedItem = { ...prevItem };
+
+        updatedItem.children.splice(pos, 0, { ...newChild });
         // debouncedUpdate.current(updatedItem);
+        updateItem(updatedItem);
         return updatedItem;
       });
     },
-    []
+    [updateItem]
   );
 
   const removeChild = useCallback(
     (id) => {
       setCurrentItem((prevItem) => {
-        const updatedItem = deepCopy(prevItem);
-        updatedItem.children = updatedItem.children.filter(
-          (child) => child.id !== id
-        );
-        // debouncedUpdate.current(updatedItem);
+        const updatedItem = { ...prevItem };
+        const index = prevItem.children.findIndex((c) => c.id === id);
+        removedIndexRef.current = index;
+        updatedItem.children.splice(index, 1);
+        updateItem(updatedItem);
+
         return updatedItem;
       });
     },
-    []
+    [updateItem]
   );
 
-  const updateChild = useCallback((child) => {
-    setCurrentItem((prevItem) => {
-      const updatedItem = deepCopy(prevItem);
-      const index = updatedItem.children.findIndex((c) => c.id === child.id);
-      if (index !== -1) {
-        updatedItem.children[index] = child;
-      }
-      return updatedItem;
-    });
-  }, []);
+  const updateChild = useCallback(
+    (child) => {
+      setCurrentItem((prevItem) => {
+        const index = prevItem.children.findIndex((c) => c.id === child.id);
+        if (index !== -1) {
+          prevItem.children[index] = child;
+        } else {
+          alert("SOMETHING WENT WRONG Combined renderer updatechild");
+        }
+        updateItem(prevItem);
+        return prevItem;
+      });
+    },
+    [updateItem]
+  );
 
   const stableHeirarchy = useMemo(
     () => [...heirarchy, currentItem.id],
