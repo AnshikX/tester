@@ -1,10 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
 import {
   useSelectedItemId,
   useSetters,
 } from "/src/components/contexts/SelectionContext";
+import { usePushChanges } from "/src/components/contexts/UndoRedoContext";
+import deepCopy from "/src/utils/deepcopy";
 
 const ConditionalRendererX = ({
   drag,
@@ -20,6 +28,28 @@ const ConditionalRendererX = ({
   const [currentItem, setCurrentItem] = useState(item);
   const selectedItemId = useSelectedItemId();
   const { setItemDetails } = useSetters();
+  const { pushChanges } = usePushChanges();
+  const previousConfigRef = useRef(deepCopy(currentItem));
+
+  const updateCurrentItem = useCallback(
+    (stateOrCallBack) => {
+      setCurrentItem((prev) => {
+        let next;
+        if (typeof stateOrCallBack === "function") {
+          next = stateOrCallBack(prev);
+        } else {
+          next = stateOrCallBack;
+        }
+        pushChanges({
+          doChanges: updateCurrentItem.bind(null, previousConfigRef.current),
+        });
+        previousConfigRef.current = deepCopy(next);
+        updateItem(next);
+        return next;
+      });
+    },
+    [updateItem, pushChanges]
+  );
 
   useEffect(() => {
     setCurrentItem(item);
@@ -29,13 +59,10 @@ const ConditionalRendererX = ({
     if (selectedItemId === currentItem.id) {
       setItemDetails({
         config: currentItem,
-        setConfig: (updatedItem) => {
-          setCurrentItem(updatedItem);
-          updateItem({ ...updatedItem });
-        },
+        setConfig: updateCurrentItem,
       });
     }
-  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+  }, [selectedItemId, currentItem, setItemDetails, updateCurrentItem]);
 
   useEffect(() => {
     if (selectedItemId !== currentItem.id) return;
@@ -44,16 +71,17 @@ const ConditionalRendererX = ({
       if (event.data?.source === "BREEZE" && event.data.type === "resource") {
         const { resource } = event.data;
         if (resource.type === "updateItem") {
-          console.log(resource);
-          setCurrentItem(resource.itemConfig);
-          updateItem(resource.itemConfig);
+          // console.log(resource);
+          // setCurrentItem(resource.itemConfig);
+          // updateItem(resource.itemConfig);
+          updateCurrentItem(resource.itemConfig);
         }
       }
     };
 
     window.addEventListener("message", handleMessageEvent);
     return () => window.removeEventListener("message", handleMessageEvent);
-  }, [selectedItemId, currentItem.id, updateItem]);
+  }, [selectedItemId, currentItem.id, updateCurrentItem]);
 
   const stableTrueHeirarchy = useMemo(
     () => [...heirarchy, currentItem?.trueCase?.id],
@@ -84,13 +112,10 @@ const ConditionalRendererX = ({
           heirarchy={stableTrueHeirarchy}
           isPreview={isPreview}
           updateItem={(updatedCase) => {
-            setCurrentItem((prev) => ({
-              ...prev,
-              trueCase: updatedCase,
-            }));
-            updateItem({
-              ...currentItem,
-              trueCase: updatedCase,
+            setCurrentItem((prev) => {
+              prev.trueCase = updatedCase;
+              updateItem(prev);
+              return prev;
             });
           }}
           overDetails={{
@@ -108,13 +133,10 @@ const ConditionalRendererX = ({
             heirarchy={stableFalseHeirarchy}
             isPreview={isPreview}
             updateItem={(updatedCase) => {
-              setCurrentItem((prev) => ({
-                ...prev,
-                falseCase: updatedCase,
-              }));
-              updateItem({
-                ...currentItem,
-                falseCase: updatedCase,
+              setCurrentItem((prev) => {
+                prev.falseCase = updatedCase;
+                updateItem(prev);
+                return prev;
               });
             }}
             overDetails={{

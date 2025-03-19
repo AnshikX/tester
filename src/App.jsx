@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router-dom";
 
 function App() {
   useEffect(() => {
+    console.log("FRAME RELOADED")
     const style = document.createElement("style");
     const cssClass =
       ".custom-highlight {background-color: yellow;outline: red solid 3px ;}";
@@ -25,6 +26,7 @@ function App() {
       window.removeEventListener("message", handleMessage);
     };
   }, []);
+
   return (
     <div>
       <RouterProvider router={router} />

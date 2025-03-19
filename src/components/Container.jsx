@@ -13,13 +13,16 @@ const Container = () => {
     htmlItems: [],
     components: [],
   });
+  useEffect(() => {
+    console.log("FRST TIME");
+  }, []);
   const { setSelectedItemId } = useSetters();
   const [isPreview, setIsPreview] = useState(false);
   const { undoChanges, redoChanges, undoStack, redoStack } = useUndoRedo();
   const [theme, setTheme] = useState("dark");
 
   const trigger = useState(0)[1];
-  
+
   useEffect(() => {
     const handleMessage = (event) => {
       // eslint-disable-next-line no-constant-condition
@@ -61,6 +64,7 @@ const Container = () => {
   }, [setSidebarItems, trigger]);
 
   const setConfig = useCallback((conf) => {
+    console.log(conf);
     window.parent.postMessage(
       {
         source: "APP",
@@ -74,7 +78,12 @@ const Container = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!document.querySelector(".rightSidebar")?.contains(event.target)) {
+      if (
+        !(
+          document.querySelector(".rightSidebar")?.contains(event.target) ||
+          document.getElementById("toolBar").contains(event.target)
+        )
+      ) {
         setSelectedItemId(null);
       }
     };
@@ -98,8 +107,11 @@ const Container = () => {
         <SideBarItem sidebarItems={sidebarItems} theme={theme} />
       </div>
       <div className={`pageContainer ${isPreview ? "width-100" : "width-60"}`}>
-        <div className={`shortcutBar ${theme === "dark" ? "dark" : "light"}`}>
-          <div className={`${isPreview ? 'hidden' : '' }`}>
+        <div
+          className={`shortcutBar ${theme === "dark" ? "dark" : "light"}`}
+          id="toolBar"
+        >
+          <div className={`${isPreview ? "hidden" : ""}`}>
             <span
               onClick={undoChanges}
               className="mx-2"
@@ -107,10 +119,7 @@ const Container = () => {
             >
               <img src={undoButton} alt="undo" />
             </span>
-            <span
-              onClick={redoChanges}
-              disabled={redoStack.length === 0}
-            >
+            <span onClick={redoChanges} disabled={redoStack.length === 0}>
               <img src={redoButton} alt="redo" />
             </span>
           </div>

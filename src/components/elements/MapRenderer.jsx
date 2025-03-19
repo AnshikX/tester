@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
 import {
   useSelectedItemId,
   useSetters,
 } from "../../components/contexts/SelectionContext";
-import { useMap } from "../../components/contexts/MapContext";
+import deepCopy from "/src/utils/deepcopy";
+import { usePushChanges } from "/src/components/contexts/UndoRedoContext";
 
 const extractConfig = (filteredParts, item) => {
   let target = item;
@@ -31,8 +32,30 @@ const MapRendererX = ({
   const [currentItem, setCurrentItem] = useState(item);
   const { setItemDetails } = useSetters();
   const selectedItemId = useSelectedItemId();
-  const { setReturnLayer } = useMap();
+  const { pushChanges } = usePushChanges();
+
   const ref = useRef([]);
+  const previousConfigRef = useRef(deepCopy(currentItem));
+
+  const updateCurrentItem = useCallback(
+    (stateOrCallBack) => {
+      setCurrentItem((prev) => {
+        let next;
+        if (typeof stateOrCallBack === "function") {
+          next = stateOrCallBack(prev);
+        } else {
+          next = stateOrCallBack;
+        }
+        pushChanges({
+          doChanges: updateCurrentItem.bind(null, previousConfigRef.current),
+        });
+        previousConfigRef.current = deepCopy(next);
+        updateItem(next);
+        return next;
+      });
+    },
+    [updateItem, pushChanges]
+  );
 
   useEffect(() => {
     setCurrentItem(item);
@@ -42,30 +65,23 @@ const MapRendererX = ({
     if (selectedItemId === currentItem.id) {
       setItemDetails({
         config: currentItem,
-        setConfig: (updatedItem) => {
-          setCurrentItem(updatedItem);
-          updateItem({ ...updatedItem });
-        },
+        setConfig: updateCurrentItem,
       });
     }
-  }, [selectedItemId, currentItem, setItemDetails, updateItem]);
+  }, [selectedItemId, currentItem, setItemDetails, updateCurrentItem]);
 
-  useEffect(() => {
-    let changed = false;
-    for (let i = 0; i < configs.length; i++) {
-      if (ref.current[i].value !== configs[i]) {
-        changed = true;
-        ref.current[i].value = configs[i];
-      }
-    }
-    if (changed) {
-      updateItem(currentItem );
-    }
-  }, [configs, updateItem, currentItem]);
-
-  useEffect(() => {
-    setReturnLayer(currentItem.id, configs);
-  }, [currentItem.id, configs, setReturnLayer]);
+  // useEffect(() => {
+  //   let changed = false;
+  //   for (let i = 0; i < configs.length; i++) {
+  //     if (ref.current[i].value !== configs[i]) {
+  //       changed = true;
+  //       ref.current[i].value = configs[i];
+  //     }
+  //   }
+  //   if (changed) {
+  //     updateItem(currentItem );
+  //   }
+  // }, [configs, updateItem, currentItem]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -87,12 +103,7 @@ const MapRendererX = ({
         }
         if (type === "resource" && resource.type === "updateItem") {
           if (resource.itemConfig?.id === currentItem.id) {
-            setCurrentItem((prev) => ({
-              ...prev,
-              ...resource.itemConfig,
-              bodyConfig: prev.bodyConfig,
-            }));
-            updateItem((prev) => ({
+            updateCurrentItem((prev) => ({
               ...prev,
               ...resource.itemConfig,
               bodyConfig: prev.bodyConfig,
@@ -111,7 +122,7 @@ const MapRendererX = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [currentItem, updateItem]);
+  }, [currentItem, updateCurrentItem]);
 
   useEffect(() => {
     window.parent.postMessage(
@@ -131,9 +142,11 @@ const MapRendererX = ({
 
   function updateConfigs(index, updatedConfig) {
     setConfigs((prev) => {
-      const newConfigs = [...prev];
-      newConfigs[index] = updatedConfig;
-      return newConfigs;
+      prev[index] = updatedConfig;
+      ref.current[index].value = updatedConfig;
+      
+      updateItem(currentItem)
+      return prev;
     });
   }
 

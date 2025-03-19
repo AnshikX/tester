@@ -138,12 +138,14 @@ const CombinedRenderer = ({
         if (index !== -1) {
           prevItem.children[index] = child;
         } else {
+          console.log(child, prevItem.children);
           alert("SOMETHING WENT WRONG Combined renderer updatechild");
         }
+        updateItem(prevItem);
         return prevItem;
       })
     },
-    []
+    [updateItem]
   );
 
   const stableHeirarchy = useMemo(
