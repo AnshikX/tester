@@ -1,4 +1,9 @@
-import SandBox from "./SandBox.jsx";
+import Main from "/src/components/Main.jsx";
+
+import SandBox from "/src/breeze_modules/SandBox.jsx";
+import DNDRoot from "/src/breeze_modules/breezeDND/DNDRoot.jsx";
+import App from "./App.jsx";
+
 import {
   Routes,
   Route,
@@ -7,40 +12,17 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
 } from "react-router-dom";
-import Container from "/src/components/Container.jsx";
-import { HTML5Backend } from "react-dnd-html5-backend";
-
-import { DndProvider } from "react-dnd";
-import { SelectionProvider } from "/src/components/contexts/SelectionContext.jsx";
-import { VisibilityProvider } from "/src/components/contexts/VisibilityContext.jsx";
-import { MapProvider } from "/src/components/contexts/MapContext.jsx";
-import Main from "/src/components/Main.jsx";
-import { UndoRedoProvider } from "/src/components/contexts/UndoRedoContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      <Route path="/" element={<Main />} />
-
       <Route path="breeze/sandbox" element={<SandBox />} />
-      <Route
-        path="breeze/config-builder"
-        element={
-          <UndoRedoProvider>
-            <MapProvider>
-              <VisibilityProvider>
-                  <SelectionProvider>
-                    <DndProvider backend={HTML5Backend}>
-                      <Container />
-                    </DndProvider>
-                  </SelectionProvider>
-              </VisibilityProvider>
-            </MapProvider>{" "}
-          </UndoRedoProvider>
-        }
-      />
-    </Route>
-  )
+      <Route path="breeze/config-builder" element={<DNDRoot />} />
+      <Route path="/" element={<App />}>
+        <Route path="/" element={<Main />} />
+      </Route>
+    </Route>,
+  ),
 );
 
 export default router;

@@ -1,0 +1,165 @@
+.brDnd-body {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+}
+
+.brDnd-sidebar {
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+  overflow: auto;
+}
+
+.brDnd-sidebar.dark,
+.brDnd-section-title.dark {
+  background: #1e1f1c;
+  color: #a5a5a4;
+}
+
+.brDnd-sidebar.light,
+.brDnd-section-title.light {
+  background: #ffffff;
+  color: #252525;
+}
+
+.brDnd-sideBarItem {
+  border-radius: 3px;
+  padding: 4px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.brDnd-shortcutBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4%;
+}
+
+/* Button Container */
+.brDnd-toggleButtonContainer {
+  align-items: center;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Toggle Button */
+.brDnd-toggleButton {
+  padding: 2px 10px;
+  font-size: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.brDnd-toggleButton:hover {
+  background-color: #0056b3;
+}
+
+.brDnd-sideBarItem.dark,
+.brDnd-shortcutBar.dark {
+  background: #272822;
+}
+
+.brDnd-sideBarItem.light,
+.brDnd-shortcutBar.light {
+  background: #f7f7f7;
+}
+
+.brDnd-section-title {
+  cursor: pointer;
+  display: flex;
+  font-size: 16px;
+  justify-content: space-between;
+}
+
+.brDnd-section-content {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brDnd-width-15 {
+  width: 15%;
+}
+
+.brDnd-width-60 {
+  width: 60%;
+}
+
+.brDnd-hidden {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+.brDnd-page {
+  flex: 1 1 auto;
+  padding: 0 20px;
+  margin: 20px;
+  margin-top: 10px;
+  border: 1px solid green;
+}
+
+.brDnd-pageContainer {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  flex-direction: column;
+  margin-bottom: 100px;
+  transition: width 0.3s ease-in-out;
+}
+
+.brDnd-dropZone {
+  height: 100%;
+  min-height: 20px;
+  min-width: 10px;
+  width: 100%;
+  transition: 200ms all;
+}
+
+.brDnd-dropZone:nth-of-type(2n) {
+  display: none;
+}
+
+.brDnd-dropZone.horizontalDrag {
+  width: 40px;
+  height: auto;
+}
+
+.brDnd-dropZone.active {
+  background: #00a2ff;
+  transition: 100ms all;
+}
+
+.brDnd-component {
+  padding: 10px;
+  background: #aaa;
+}
+
+.brDnd-col-drop {
+  max-width: 100px;
+  min-height: 40px;
+  flex: 1 0 0%;
+}
+
+.brDnd-row-drop {
+  flex: 1 1 auto;
+  max-width: 100%;
+  min-height: 20px;
+}
+
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+  background: #a5a5a4;
+}

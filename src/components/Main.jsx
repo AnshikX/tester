@@ -1,4 +1,4 @@
 const Main = ({ prop1 }) => {
-  return <div>1</div>;
+  return <div>Hello world</div>;
 };
 export default Main;
