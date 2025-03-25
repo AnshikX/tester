@@ -1,19 +1,19 @@
 
 const entities = {}
 const entityDetails = {
-  "4a840f4c_a0e3_455e_9b84_1c7a80697693": {
-    "exportedAs": "App",
-    "from": "/src/App.jsx",
+  "2ca2043f_1564_453d_84e7_8815f6dc2366": {
+    "exportedAs": "Main",
+    "from": "/src/components/Main.jsx",
     "default": true
   },
-  "73b67205_bec3_4f5e_851a_cef907d6a501": {
+  "bd8ed63d_1345_4b47_8de8_d6892d4c6f00": {
     "exportedAs": "Layout",
     "from": "/src/components/Layout.jsx",
     "default": true
   },
-  "fadbdb84_5a31_4a26_b354_3b01953554dd": {
-    "exportedAs": "Main",
-    "from": "/src/components/Main.jsx",
+  "e56eabc1_6b5c_42e8_89de_b5b97a402f40": {
+    "exportedAs": "App",
+    "from": "/src/App.jsx",
     "default": true
   },
   "PROJECT_ROUTER": {
