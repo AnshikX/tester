@@ -27,32 +27,20 @@ const TextRenderer = ({
   const previousConfigRef = useRef(deepCopy(currentItem));
 
   const updateCurrentItem = useCallback(
-    (stateOrCallBack,debugMessage = null) => {
+    (stateOrCallBack) => {
+      console.log('object')
       setCurrentItem((prev) => {
-        if (debugMessage) {
-          console.log(debugMessage);
-        }
         let next;
         if (typeof stateOrCallBack === "function") {
           next = stateOrCallBack(prev);
         } else {
           next = stateOrCallBack;
         }
-        console.log(next.children?.length)
-        console.log(
-          "should be called twice for ",
-          next.id,
-          next.children?.length
-        );
-        if(next.tag){
-          console.log(next)
-        }
-
         const undoTo = deepCopy(previousConfigRef.current);
         previousConfigRef.current = deepCopy(next);
         setTimeout(() => {
           pushChanges({
-            doChanges: updateCurrentItem.bind(null, undoTo, debugMessage?debugMessage+" undo":null),
+            doChanges: updateCurrentItem.bind(null, undoTo),
           });
         }, 0);
         updateItem(next);

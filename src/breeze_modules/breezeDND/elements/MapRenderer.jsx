@@ -42,6 +42,7 @@ const MapRendererX = ({
 
   const updateCurrentItem = useCallback(
     (stateOrCallBack) => {
+      console.log('object')
       setCurrentItem((prev) => {
         let next;
         if (typeof stateOrCallBack === "function") {

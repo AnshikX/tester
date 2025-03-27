@@ -34,40 +34,31 @@ const CombinedRenderer = ({
   removedIndexRef.current = null;
 
   const updateCurrentItem = useCallback(
-    (stateOrCallBack,debugMessage = null) => {
+    (stateOrCallBack) => {
       setCurrentItem((prev) => {
-        if (debugMessage) {
-          console.log(debugMessage);
-        }
         let next;
         if (typeof stateOrCallBack === "function") {
           next = stateOrCallBack(prev);
         } else {
           next = stateOrCallBack;
         }
-        console.log(next.children?.length)
-        console.log(
-          "should be called twice for ",
-          next.id,
-          next.children?.length
-        );
-        if(next.tag){
-          console.log(next)
-        }
-
         const undoTo = deepCopy(previousConfigRef.current);
+        // console.log(undoTo )
         previousConfigRef.current = deepCopy(next);
+        
         setTimeout(() => {
           pushChanges({
-            doChanges: updateCurrentItem.bind(null, undoTo, debugMessage?debugMessage+" undo":null),
-          });
+            doChanges: updateCurrentItem.bind(null, undoTo),
+          }, undoTo);
         }, 0);
+        
         updateItem(next);
         return next;
       });
     },
     [updateItem, pushChanges]
   );
+  
 
   // useEffect(() => {
   //   setCurrentItem(config);
@@ -88,7 +79,6 @@ const CombinedRenderer = ({
         if (resource.type === "updateItem") {
           updateCurrentItem((item) => {
             resource.itemConfig.children = item?.children;
-            // debouncedUpdate.current(resource.itemConfig);
             if (JSON.stringify(resource.itemConfig) !== JSON.stringify(item)) {
               console.log(resource);
               return resource.itemConfig;
@@ -104,11 +94,8 @@ const CombinedRenderer = ({
     return () => window.removeEventListener("message", handleMessageEvent);
   }, [selectedItemId, config.id, updateCurrentItem]);
 
-  // console.log("UPDATED in ", currentItem.id, currentItem?.children?.length);
-
   const addChild = useCallback(
     (newChild, offset, index) => {
-      // console.log("Add Child in "z, currentItem.id)
       updateCurrentItem((prevItem) => {
         let updatedChildren = [...prevItem.children];
         let pos = index + offset;
@@ -118,14 +105,13 @@ const CombinedRenderer = ({
         updatedChildren.splice(pos, 0, { ...newChild });
 
         return { ...prevItem, children: updatedChildren };
-      },"Add Child");
+      });
     },
     [updateCurrentItem]
   );
 
   const removeChild = useCallback(
     (id) => {
-      // console.log("Remove Child in ", currentItem.id)
       updateCurrentItem((prevItem) => {
         const updatedItem = { ...prevItem };
         const index = prevItem.children.findIndex((c) => c.id === id);
@@ -137,9 +123,8 @@ const CombinedRenderer = ({
             removedIndexRef.current = null;
           }, 0);
         }
-        // console.log(updatedItem.children.length)
         return updatedItem;
-      },"Remove Child");
+      });
     },
     [updateCurrentItem]
   );
@@ -151,11 +136,9 @@ const CombinedRenderer = ({
         if (index !== -1) {
           prevItem.children[index] = child;
         } else {
-          console.log(child, prevItem.children);
           alert("SOMETHING WENT WRONG Combined renderer updatechild");
         }
         updateItem(prevItem);
-        console.log(prevItem.id);
         return prevItem;
       });
     },
