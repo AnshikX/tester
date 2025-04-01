@@ -12,6 +12,7 @@ const Container = () => {
   const [sidebarItems, setSidebarItems] = useState({
     htmlItems: [],
     components: [],
+    third_party: [],
   });
   useEffect(() => {
     console.log("FRST TIME");

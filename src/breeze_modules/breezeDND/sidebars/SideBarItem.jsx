@@ -7,9 +7,11 @@ import downArrow from "../assets/svgs/down-arrow.svg";
 import generate_uuid from "../../utils/UuidGenerator";
 
 const SideBarItem = ({ sidebarItems, theme }) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [openSections, setOpenSections] = useState({
     html: true,
     components: true,
+    third_party: true
   });
 
   const toggleSection = (section) => {
@@ -19,10 +21,32 @@ const SideBarItem = ({ sidebarItems, theme }) => {
     }));
   };
 
+  // Filter function to search across all categories
+  const filterItems = (items) => {
+    return items.filter((item) =>
+      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const filteredHtmlItems = filterItems(sidebarItems.htmlItems);
+  const filteredComponents = filterItems(sidebarItems.components);
+  const filteredThirdParty = filterItems(sidebarItems.third_party);
+
   return (
     <div className={`brDnd-sidebar ${theme === "dark" ? "dark" : "light"}`}>
+      {/* Search Bar */}
+      <div className="brDnd-search-container">
+        <input
+          type="text"
+          className={`brDnd-search-bar ${theme === "dark" ? "dark" : "light"}`}
+          placeholder="Search items..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       {/* HTML Elements Section */}
-      <div className="mb-2">
+      <div className="mb-2 mt-5">
         <span
           onClick={() => toggleSection("html")}
           className="brDnd-section-title"
@@ -36,9 +60,13 @@ const SideBarItem = ({ sidebarItems, theme }) => {
         </span>
         {openSections.html && (
           <div className="brDnd-section-content">
-            {sidebarItems.htmlItems.map((item, index) => (
-              <DraggableItem key={index} data={item} theme={theme} />
-            ))}
+            {filteredHtmlItems.length > 0 ? (
+              filteredHtmlItems.map((item, index) => (
+                <DraggableItem key={index} data={item} theme={theme} />
+              ))
+            ) : (
+              <div className="fst-italic fs-6">No results</div>
+            )}
           </div>
         )}
       </div>
@@ -58,9 +86,39 @@ const SideBarItem = ({ sidebarItems, theme }) => {
         </span>
         {openSections.components && (
           <div className="brDnd-section-content">
-            {sidebarItems.components.map((item, index) => (
-              <DraggableItem key={index} data={item} theme={theme} />
-            ))}
+            {filteredComponents.length > 0 ? (
+              filteredComponents.map((item, index) => (
+                <DraggableItem key={index} data={item} theme={theme} />
+              ))
+            ) : (
+              <div className="fst-italic fs-6">No results</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Third party Section*/}
+      <div className="mb-2">
+        <span
+          onClick={() => toggleSection("third_party")}
+          className="brDnd-section-title"
+        >
+          Third Party
+          {openSections.third_party ? (
+            <img src={downArrow} alt="collapse" />
+          ) : (
+            <img src={upArrow} alt="expand" />
+          )}
+        </span>
+        {openSections.third_party && (
+          <div className="brDnd-section-content">
+            {filteredThirdParty.length > 0 ? (
+              filteredThirdParty.map((item, index) => (
+                <DraggableItem key={index} data={item} theme={theme} />
+              ))
+            ) : (
+              <div className="fst-italic fs-6">No results</div>
+            )}
           </div>
         )}
       </div>
@@ -113,6 +171,7 @@ SideBarItem.propTypes = {
   sidebarItems: PropTypes.shape({
     htmlItems: PropTypes.array.isRequired,
     components: PropTypes.array.isRequired,
+    third_party: PropTypes.array.isRequired
   }).isRequired,
   theme: PropTypes.string.isRequired,
 };

@@ -13,13 +13,15 @@
 }
 
 .brDnd-sidebar.dark,
-.brDnd-section-title.dark {
+.brDnd-section-title.dark,
+.brDnd-search-bar.dark {
   background: #1e1f1c;
   color: #a5a5a4;
 }
 
 .brDnd-sidebar.light,
-.brDnd-section-title.light {
+.brDnd-section-title.light,
+.brDnd-search-bar.light {
   background: #ffffff;
   color: #252525;
 }
@@ -162,4 +164,27 @@
   width: 2px;
   height: 2px;
   background: #a5a5a4;
+}
+
+/* Search Bar Container */
+.brDnd-search-container {
+  /* padding: 6px; */
+  width: 13%;
+  position: fixed;
+}
+
+/* Search Input Field */
+.brDnd-search-bar {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Focus Effect */
+.brDnd-search-bar:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
 }
