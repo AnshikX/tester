@@ -194,12 +194,12 @@ Renderer.propTypes = {
     $ref: PropTypes.string,
     label: PropTypes.string,
     attributes: PropTypes.object,
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     children: PropTypes.arrayOf(
       PropTypes.shape({
         elementType: PropTypes.string.isRequired,
         id: PropTypes.string,
-        value: PropTypes.string,
+        value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
         children: PropTypes.array,
       })
     ),

@@ -121,7 +121,7 @@ const TextRenderer = ({
 TextRenderer.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }).isRequired,
   handleSelect: PropTypes.func.isRequired,
   textType: PropTypes.string,
