@@ -12,7 +12,7 @@ import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { getValue } from "../constants/processAttributesFunction";
 import SwitchRenderer from "./SwitchRenderer";
 import { usePushChanges } from "../contexts/UndoRedoContext";
-import deepCopy from "../utils/deepcopy";
+import deepCopy from "../../utils/deepcopy";
 
 const CombinedRenderer = ({
   item: config,
@@ -43,7 +43,6 @@ const CombinedRenderer = ({
           next = stateOrCallBack;
         }
         const undoTo = deepCopy(previousConfigRef.current);
-        // console.log(undoTo )
         previousConfigRef.current = deepCopy(next);
         
         setTimeout(() => {
@@ -220,7 +219,6 @@ const CombinedRenderer = ({
             isOnly={true}
             heirarchy={[...stableHeirarchy, currentItem.id]}
           >
-            DROP HERE
           </DropZone>
         ) : (
           <DropZone

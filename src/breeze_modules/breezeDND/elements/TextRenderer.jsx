@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { usePushChanges } from "../contexts/UndoRedoContext";
-import deepCopy from "../utils/deepcopy";
+import deepCopy from "../../utils/deepcopy";
 
 const TextRenderer = ({
   item,
@@ -14,10 +15,10 @@ const TextRenderer = ({
   drag,
   isPreview,
 }) => {
-  if( item.textType === 'value'){
-    return 'VALUE COMPONENT GOES HERE'
+  if (item.textType === "value") {
+    return "VALUE COMPONENT GOES HERE";
   }
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState(item);
 
@@ -28,7 +29,6 @@ const TextRenderer = ({
 
   const updateCurrentItem = useCallback(
     (stateOrCallBack) => {
-      console.log('object')
       setCurrentItem((prev) => {
         let next;
         if (typeof stateOrCallBack === "function") {
@@ -95,6 +95,7 @@ const TextRenderer = ({
   ) : isEditing ? (
     <input
       id={currentItem.id}
+      style={{ display: "inline", width: "auto" }}
       type="text"
       defaultValue={currentItem.value}
       onMouseOver={handleMouseOver}
@@ -106,7 +107,7 @@ const TextRenderer = ({
   ) : (
     <span
       id={currentItem.id}
-      style={{ opacity, display:"inline" , alignSelf:"center", width:"auto" }}
+      style={{ opacity, display: "inline", width: "auto" }}
       onClick={handleSelect}
       onDoubleClick={handleDoubleClick}
       onMouseOver={handleMouseOver}
@@ -122,6 +123,7 @@ TextRenderer.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.string.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    textType: PropTypes.string,
   }).isRequired,
   handleSelect: PropTypes.func.isRequired,
   textType: PropTypes.string,

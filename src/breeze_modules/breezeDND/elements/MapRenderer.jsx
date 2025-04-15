@@ -8,7 +8,7 @@ import React, {
 import PropTypes from "prop-types";
 import Renderer from "../Renderer";
 import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
-import deepCopy from "../utils/deepcopy";
+import deepCopy from "../../utils/deepcopy";
 import { usePushChanges } from "../contexts/UndoRedoContext";
 
 const extractConfig = (filteredParts, item) => {

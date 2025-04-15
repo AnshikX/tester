@@ -120,15 +120,6 @@
   margin-bottom: 100px;
   transition: width 0.3s ease-in-out;
 }
-
-.brDnd-dropZone {
-  height: 100%;
-  min-height: 20px;
-  min-width: 10px;
-  width: 100%;
-  transition: 200ms all;
-}
-
 .brDnd-dropZone:nth-of-type(2n) {
   display: none;
 }
@@ -138,26 +129,63 @@
   height: auto;
 }
 
-.brDnd-dropZone.active {
-  background: #00a2ff;
-  transition: 100ms all;
-}
-
 .brDnd-component {
   padding: 10px;
   background: #aaa;
 }
-
-.brDnd-col-drop {
-  max-width: 100px;
-  min-height: 40px;
-  flex: 1 0 0%;
+.brDnd-dropZone {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
+/* Default state for dropzones (hidden, zero size) */
+.brDnd-col-drop,
 .brDnd-row-drop {
-  flex: 1 1 auto;
-  max-width: 100%;
-  min-height: 20px;
+  width: 0;
+  height: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  transition: width 0.25s ease, height 0.25s ease, background-color 0.25s ease,
+    border 0.25s ease;
+  will-change: width, height, background-color, border;
+}
+
+/* When visible, dropzones appear with a light tone */
+.brDnd-col-drop.visible {
+  width: 20px;
+  height: auto;
+  background-color: #cceeff;
+  border: 1px dashed rgba(0, 162, 255, 0.3);
+}
+
+.brDnd-row-drop.visible {
+  height: 20px;
+  width: auto;
+  background-color: #cceeff;
+  border: 1px dashed rgba(0, 162, 255, 0.3);
+}
+
+/* When highlighted (cursor inside), show full dimensions and stronger colors */
+.brDnd-col-drop.highlighted {
+  width: 20px;
+  height: auto;
+  background-color: #00a2ff;
+  border: 1px solid rgba(0, 0, 255, 0.6);
+}
+
+.brDnd-row-drop.highlighted {
+  height: 20px;
+  width: auto;
+  background-color: #00a2ff;
+  border: 1px solid rgba(0, 0, 255, 0.6);
 }
 
 ::-webkit-scrollbar {

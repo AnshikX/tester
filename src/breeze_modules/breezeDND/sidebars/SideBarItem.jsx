@@ -5,6 +5,7 @@ import "../styles.css";
 import upArrow from "../assets/svgs/up-arrow.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
 import generate_uuid from "../../utils/UuidGenerator";
+import { generateId } from "../utils/generateIds";
 
 const SideBarItem = ({ sidebarItems, theme }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,7 +130,7 @@ const SideBarItem = ({ sidebarItems, theme }) => {
 const DraggableItem = ({ data, theme }) => {
   const getItem = useCallback(() => {
     const newItem = JSON.parse(JSON.stringify(data));
-    newItem.id = generate_uuid();
+    generateId(newItem);
     if (newItem.elementType === "MAP") {
       newItem.bodyConfig.statements[0].value.id = generate_uuid();
     }

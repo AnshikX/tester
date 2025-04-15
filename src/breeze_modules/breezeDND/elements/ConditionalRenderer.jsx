@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 import Renderer from "../Renderer";
 import { useSelectedItemId, useSetters } from "../contexts/SelectionContext";
 import { usePushChanges } from "../contexts/UndoRedoContext";
-import deepCopy from "../utils/deepcopy";
+import deepCopy from "../../utils/deepcopy";
 
 const ConditionalRendererX = ({
   drag,
