@@ -6,6 +6,7 @@ import upArrow from "../assets/svgs/up-arrow.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
 import generate_uuid from "../../utils/UuidGenerator";
 import { generateId } from "../utils/generateIds";
+import deepCopy from "../../utils/deepcopy";
 
 const SideBarItem = ({ sidebarItems, theme }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,9 +55,9 @@ const SideBarItem = ({ sidebarItems, theme }) => {
         >
           HTML Elements
           {openSections.html ? (
-            <img src={downArrow} alt="collapse" />
-          ) : (
             <img src={upArrow} alt="expand" />
+          ) : (
+            <img src={downArrow} alt="collapse" />
           )}
         </span>
         {openSections.html && (
@@ -80,9 +81,9 @@ const SideBarItem = ({ sidebarItems, theme }) => {
         >
           Components
           {openSections.components ? (
-            <img src={downArrow} alt="collapse" />
-          ) : (
             <img src={upArrow} alt="expand" />
+          ) : (
+            <img src={downArrow} alt="collapse" />
           )}
         </span>
         {openSections.components && (
@@ -106,9 +107,9 @@ const SideBarItem = ({ sidebarItems, theme }) => {
         >
           Third Party
           {openSections.third_party ? (
-            <img src={downArrow} alt="collapse" />
-          ) : (
             <img src={upArrow} alt="expand" />
+          ) : (
+            <img src={downArrow} alt="collapse" />
           )}
         </span>
         {openSections.third_party && (
@@ -129,7 +130,7 @@ const SideBarItem = ({ sidebarItems, theme }) => {
 
 const DraggableItem = ({ data, theme }) => {
   const getItem = useCallback(() => {
-    const newItem = JSON.parse(JSON.stringify(data));
+    const newItem = deepCopy(data);
     generateId(newItem);
     if (newItem.elementType === "MAP") {
       newItem.bodyConfig.statements[0].value.id = generate_uuid();
