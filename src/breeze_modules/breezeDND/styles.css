@@ -144,9 +144,21 @@
 }
 
 /* Default state for dropzones (hidden, zero size) */
-.brDnd-col-drop,
-.brDnd-row-drop {
+.brDnd-col-drop {
+  height: auto;
   width: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  transition: width 0.25s ease, height 0.25s ease, background-color 0.25s ease,
+    border 0.25s ease, box-shadow 0.4s ease;;
+  will-change: width, height, background-color, border;
+}
+
+.brDnd-row-drop {
+  width: auto;
   height: 0;
   min-width: 0;
   min-height: 0;
@@ -154,38 +166,42 @@
   background: transparent;
   border: none;
   transition: width 0.25s ease, height 0.25s ease, background-color 0.25s ease,
-    border 0.25s ease;
+    border 0.25s ease, box-shadow 0.4s ease;;
   will-change: width, height, background-color, border;
 }
 
 /* When visible, dropzones appear with a light tone */
 .brDnd-col-drop.visible {
-  width: 20px;
+  width: 30px;
   height: auto;
-  background-color: #cceeff;
+  background-color: #9daab6;
   border: 1px dashed rgba(0, 162, 255, 0.3);
+  box-shadow: none;
 }
 
 .brDnd-row-drop.visible {
-  height: 20px;
+  height: 30px;
   width: auto;
-  background-color: #cceeff;
+  background-color: #9daab6;
   border: 1px dashed rgba(0, 162, 255, 0.3);
+  box-shadow: none;
 }
 
 /* When highlighted (cursor inside), show full dimensions and stronger colors */
 .brDnd-col-drop.highlighted {
-  width: 20px;
+  width: 30px;
   height: auto;
-  background-color: #00a2ff;
+  background-color: #40505d;
   border: 1px solid rgba(0, 0, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 0, 255, 0.4), 0 0 2px rgba(0, 0, 255, 0.2) inset;
 }
 
 .brDnd-row-drop.highlighted {
-  height: 20px;
+  height: 30px;
   width: auto;
-  background-color: #00a2ff;
+  background-color: #40505d;
   border: 1px solid rgba(0, 0, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 0, 255, 0.4), 0 0 2px rgba(0, 0, 255, 0.2) inset;
 }
 
 ::-webkit-scrollbar {

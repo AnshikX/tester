@@ -86,6 +86,11 @@ const entityDetails = {
     "from": "/src/services/Swagger Petstore - OpenAPI 3.0/pet.jsx",
     "default": false
   },
+  "76ab104d_ecf8_480f_9216_5ebf6fd18da1": {
+    "exportedAs": "test",
+    "from": "/src/components/test.jsx",
+    "default": true
+  },
   "89324c5e_7ddc_4855_99bf_d89364ed2f09": {
     "exportedAs": "uploadFile",
     "from": "/src/services/Swagger Petstore - OpenAPI 3.0/pet.jsx",

@@ -44,20 +44,22 @@ const CombinedRenderer = ({
         }
         const undoTo = deepCopy(previousConfigRef.current);
         previousConfigRef.current = deepCopy(next);
-        
+
         setTimeout(() => {
-          pushChanges({
-            doChanges: updateCurrentItem.bind(null, undoTo),
-          }, undoTo);
+          pushChanges(
+            {
+              doChanges: updateCurrentItem.bind(null, undoTo),
+            },
+            undoTo
+          );
         }, 0);
-        
+
         updateItem(next);
         return next;
       });
     },
     [updateItem, pushChanges]
   );
-  
 
   // useEffect(() => {
   //   setCurrentItem(config);
@@ -154,6 +156,7 @@ const CombinedRenderer = ({
     return Object.entries(currentItem.attributes).reduce(
       (acc, [key, value]) => {
         if (key.startsWith("on")) return acc;
+        if (key === "href") return acc;
         if (key === "style" && value?.type === "OBJECT") {
           const computedStyles = Object.entries(value.properties).reduce(
             (styleAcc, [styleKey, styleValue]) => {
@@ -218,8 +221,7 @@ const CombinedRenderer = ({
             position="bottom"
             isOnly={true}
             heirarchy={[...stableHeirarchy, currentItem.id]}
-          >
-          </DropZone>
+          ></DropZone>
         ) : (
           <DropZone
             key={`${currentItem.id}-drop-bottom`}
