@@ -42,7 +42,10 @@ const Main = ({ prop1 }) => {
       {arr.map((item) => {
         return <>{item}</>;
       })}
-      <table className={"table"}>
+      {arr.map((item) => {
+        return <div />;
+      })}
+      <table className={"table p-2"}>
         <thead>
           <tr>
             <th>Name</th>
@@ -53,43 +56,38 @@ const Main = ({ prop1 }) => {
         </thead>
         <tbody>
           <tr>
-            <td>Anushka</td>
+            <td>Alice</td>
             <td>10A</td>
             <td>101</td>
             <td>Math</td>
           </tr>
           <tr>
-            <td>Anshik</td>
+            <td>Bob</td>
             <td>10B</td>
             <td>102</td>
             <td>Science</td>
           </tr>
           <tr>
-            <td>Bye</td>
+            <td>Charlie</td>
             <td>10A</td>
-            <td>History</td>
             <td>103</td>
+            <td>History</td>
           </tr>
           <tr>
             <td>Diana</td>
-            <td>
-              <ul />
-              10C
-            </td>
+            <td>10C</td>
             <td>104</td>
             <td>English</td>
           </tr>
           <tr>
-            <td>10B</td>
             <td>Eva</td>
+            <td>10B</td>
             <td>105</td>
             <td>Geography</td>
           </tr>
         </tbody>
       </table>
-      {arr.map((item) => {
-        return <div />;
-      })}
+      {undefined ? <></> : <></>}
     </div>
   );
 };

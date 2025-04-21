@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import "../styles.css";
 import upArrow from "../assets/svgs/up-arrow.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
-import generate_uuid from "../../utils/UuidGenerator";
 import { generateId } from "../utils/generateIds";
 import deepCopy from "../../utils/deepcopy";
 
@@ -13,7 +12,7 @@ const SideBarItem = ({ sidebarItems, theme }) => {
   const [openSections, setOpenSections] = useState({
     html: true,
     components: true,
-    third_party: true
+    third_party: true,
   });
 
   const toggleSection = (section) => {
@@ -132,13 +131,6 @@ const DraggableItem = ({ data, theme }) => {
   const getItem = useCallback(() => {
     const newItem = deepCopy(data);
     generateId(newItem);
-    if (newItem.elementType === "MAP") {
-      newItem.bodyConfig.statements[0].value.id = generate_uuid();
-    }
-    if (newItem.elementType === "CONDITIONAL") {
-      newItem.trueCase.id = generate_uuid();
-      newItem.falseCase.id = generate_uuid();
-    }
     return newItem;
   }, [data]);
 
@@ -173,7 +165,7 @@ SideBarItem.propTypes = {
   sidebarItems: PropTypes.shape({
     htmlItems: PropTypes.array.isRequired,
     components: PropTypes.array.isRequired,
-    third_party: PropTypes.array.isRequired
+    third_party: PropTypes.array.isRequired,
   }).isRequired,
   theme: PropTypes.string.isRequired,
 };
