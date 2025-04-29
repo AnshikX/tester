@@ -25,10 +25,35 @@ const DropZone = ({ onDrop, children, isOnly, heirarchy = [] }) => {
     {
       accept: ACCEPTS,
       drop: ({ item, myOnDrop, getItem }) => {
-        // When an item is dropped, clean up all dropzone classes.
         if (myOnDrop) myOnDrop();
-        if (getItem) onDrop(getItem(item));
-        else if (item) onDrop(item);
+        if (getItem) {
+          const temp = getItem(item);
+          if (temp.elementType === "WIDGET") {
+            // Send to Breeze, wait for response, then call onDrop
+            const widgetListener = (event) => {
+              if (
+                event.data?.source === "BREEZE" &&
+                event.data.type === "widgetConfig"
+              ) {
+                onDrop(event.data.config);
+                window.removeEventListener("message", widgetListener);
+              }
+            };
+
+            window.addEventListener("message", widgetListener);
+
+            window.parent.postMessage(
+              {
+                source: "APP",
+                action: "FETCH_CONFIG",
+                widgetConfig: temp,
+              },
+              "*"
+            );
+          } else {
+            onDrop(temp);
+          }
+        } else if (item) onDrop(item);
         else console.warn("Something went wrong");
 
         dropzoneRegistry.forEach((el) => {

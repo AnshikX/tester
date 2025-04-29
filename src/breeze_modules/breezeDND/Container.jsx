@@ -13,6 +13,7 @@ const Container = () => {
     htmlItems: [],
     components: [],
     third_party: [],
+    widgets: [],
   });
   useEffect(() => {
     console.log("FRST TIME");

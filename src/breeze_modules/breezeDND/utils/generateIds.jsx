@@ -1,26 +1,20 @@
 import generate_uuid from "../../utils/UuidGenerator";
 
-export const generateId = (item) => {
-  if (!item || typeof item !== "object") return;
+// Replaces all ID placeholders in the form of ${...} with fresh UUIDs.
+export const generateIdFromTemplate = (item) => {
+  if (!item || typeof item !== "object") return item;
 
-  item.id = generate_uuid();
+  let jsonStr = JSON.stringify(item);
 
-  // For MAP
-  if (item.elementType === "MAP" && item.bodyConfig?.statements) {
-    item.bodyConfig.statements.forEach((statement) => {
-      generateId(statement);
-      if (statement.value) generateId(statement.value);
-    });
-  }
+  const placeholderMap = {};
 
-  // For CONDITIONAL
-  if (item.elementType === "CONDITIONAL") {
-    generateId(item.trueCase);
-    generateId(item.falseCase);
-  }
+  // Replace all occurrences of ${...} with new UUIDs
+  jsonStr = jsonStr.replace(/\$\{([^}]+)\}/g, (_, key) => {
+    if (!placeholderMap[key]) {
+      placeholderMap[key] = generate_uuid();
+    }
+    return placeholderMap[key];
+  });
 
-  // For children
-  if (Array.isArray(item.children)) {
-    item.children.forEach((child) => generateId(child));
-  }
+  return JSON.parse(jsonStr);
 };

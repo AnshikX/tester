@@ -4,15 +4,15 @@ import PropTypes from "prop-types";
 import "../styles.css";
 import upArrow from "../assets/svgs/up-arrow.svg";
 import downArrow from "../assets/svgs/down-arrow.svg";
-import { generateId } from "../utils/generateIds";
-import deepCopy from "../../utils/deepcopy";
+import { generateIdFromTemplate } from "../utils/generateIds";
 
 const SideBarItem = ({ sidebarItems, theme }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openSections, setOpenSections] = useState({
-    html: true,
-    components: true,
-    third_party: true,
+    html: false,
+    components: false,
+    third_party: false,
+    widgets: true,
   });
 
   const toggleSection = (section) => {
@@ -25,13 +25,13 @@ const SideBarItem = ({ sidebarItems, theme }) => {
   // Filter function to search across all categories
   const filterItems = (items) => {
     return items.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+      item.label?.toLowerCase().includes(searchQuery?.toLowerCase())
     );
   };
-
   const filteredHtmlItems = filterItems(sidebarItems.htmlItems);
   const filteredComponents = filterItems(sidebarItems.components);
   const filteredThirdParty = filterItems(sidebarItems.third_party);
+  const filteredWidgets = filterItems(sidebarItems.widgets);
 
   return (
     <div className={`brDnd-sidebar ${theme === "dark" ? "dark" : "light"}`}>
@@ -123,15 +123,39 @@ const SideBarItem = ({ sidebarItems, theme }) => {
           </div>
         )}
       </div>
+
+      {/* widget Section */}
+      <div className="mb-2">
+        <span
+          onClick={() => toggleSection("widgets")}
+          className="brDnd-section-title"
+        >
+          Widget Elements
+          {openSections.widgets ? (
+            <img src={upArrow} alt="expand" />
+          ) : (
+            <img src={downArrow} alt="collapse" />
+          )}
+        </span>
+        {openSections.widgets && (
+          <div className="brDnd-section-content">
+            {filteredWidgets.length > 0 ? (
+              filteredWidgets.map((item, index) => (
+                <DraggableItem key={index} data={item} theme={theme} />
+              ))
+            ) : (
+              <div className="fst-italic fs-6">No results</div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 const DraggableItem = ({ data, theme }) => {
   const getItem = useCallback(() => {
-    const newItem = deepCopy(data);
-    generateId(newItem);
-    return newItem;
+    return generateIdFromTemplate(data);
   }, [data]);
 
   const [{ opacity }, drag] = useDrag(
@@ -166,6 +190,7 @@ SideBarItem.propTypes = {
     htmlItems: PropTypes.array.isRequired,
     components: PropTypes.array.isRequired,
     third_party: PropTypes.array.isRequired,
+    widgets: PropTypes.array.isRequired,
   }).isRequired,
   theme: PropTypes.string.isRequired,
 };
