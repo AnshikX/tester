@@ -9,6 +9,7 @@ const test = () => {
   ];
   const [formdata, setFormdata] = useState({ id: "1", name: "Anonymous" });
   const handleChange = (e) => {};
-  return <div>Hello world</div>;
+  const handleSubmit = (data) => {};
+  return <div />;
 };
 export default test;
